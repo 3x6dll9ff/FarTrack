@@ -1,7 +1,6 @@
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
-buildCommand = "docker build -t app ."
+builder = "nixpacks"
+buildCommand = "chmod +x build.sh && ./build.sh"
 
 [deploy]
 healthcheckPath = "/"

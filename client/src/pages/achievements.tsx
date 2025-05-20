@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { warpcastClient } from "@/lib/warpcast";
 import { 
   Award, Calendar, CheckCircle, Flame, Lock, MessageSquare, 
   Star, Trophy, Users, Heart, Repeat, Zap, Gift, Twitter, 
@@ -22,6 +24,8 @@ interface AchievementCardProps {
 }
 
 function AchievementCard({ achievement }: AchievementCardProps) {
+  const { toast } = useToast();
+  
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -40,8 +44,38 @@ function AchievementCard({ achievement }: AchievementCardProps) {
     trophy: <Trophy className="h-6 w-6" />,
   };
 
-  const handleShare = () => {
-    alert('Поделились достижением в Warpcast!');
+  const handleShare = async () => {
+    toast({
+      title: "Публикация...",
+      description: "Делимся достижением в Warpcast"
+    });
+    
+    try {
+      const result = await warpcastClient.shareAchievement(
+        achievement.name, 
+        achievement.description || 'Я только что получил новое достижение в FarTrack!'
+      );
+      
+      if (result) {
+        toast({
+          title: "Успех!",
+          description: "Достижение опубликовано в Warpcast",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Не удалось опубликовать",
+          description: "Проверьте подключение к Warpcast",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось поделиться достижением",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

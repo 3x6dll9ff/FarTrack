@@ -9,21 +9,65 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Award, BarChart2, CalendarDays, MessageSquare, Heart, 
   Repeat, User as UserIcon, ExternalLink, Flame, Sparkles,
-  Share2, Trophy, Star, Zap, Check, Mail, Link2, Lock
+  Share2, Trophy, Star, Zap, Check, Mail, Link2, Lock, RefreshCw
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
+import { warpcastClient } from "@/lib/warpcast";
+import { useToast } from "@/hooks/use-toast";
 import { Achievement } from "@shared/schema";
 
 export default function Profile() {
   const { id } = useParams();
   const userId = id ? parseInt(id) : 1;
+  const { toast } = useToast();
 
   // Fetch user data
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: [`/api/users/${userId}`],
     queryFn: () => fetch(`/api/users/${userId}`).then((res) => res.json()),
   });
+  
+  // Функция для синхронизации с Warpcast
+  const syncWithWarpcast = async (username: string) => {
+    if (!username) {
+      toast({
+        title: "Ошибка",
+        description: "Имя пользователя не указано",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Синхронизация...",
+      description: "Получение данных из Warpcast"
+    });
+    
+    try {
+      const result = await warpcastClient.syncUserData(username, userId);
+      
+      if (result) {
+        toast({
+          title: "Успех!",
+          description: "Профиль синхронизирован с Warpcast",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось синхронизировать профиль",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при синхронизации",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Fetch achievements
   const { data: achievements, isLoading: achievementsLoading } = useQuery({
@@ -108,15 +152,24 @@ export default function Profile() {
                     {userLoading ? <Skeleton className="h-4 w-24" /> : `@${user?.username}`}
                   </p>
                 </div>
-                <a 
-                  href="https://warpcast.com/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 mt-1"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span>View on Warpcast</span>
-                </a>
+                <div className="flex gap-2">
+                  <a 
+                    href={`https://warpcast.com/${user?.username}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 mt-1"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>View on Warpcast</span>
+                  </a>
+                  <button 
+                    onClick={() => syncWithWarpcast(user?.username || '')}
+                    className="inline-flex items-center gap-1 text-sm text-green-400 hover:text-green-300 mt-1"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    <span>Sync</span>
+                  </button>
+                </div>
               </div>
               
               <div className="mt-3 text-sm text-gray-300">

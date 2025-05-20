@@ -3,14 +3,14 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, BarChart2, Users, Award, ArrowUp } from "lucide-react";
+import { MessageSquare, BarChart2, Heart, Award, ArrowUp, Repeat } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AreaChart,
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
@@ -41,48 +41,74 @@ export default function Dashboard() {
     points: stat.casts * 10 + stat.replies * 5 + stat.reactions * 2 + stat.recasts * 8,
   })) : [];
 
+  // Получение статистики за последние сутки
+  const latestStat = statsData && statsData.length > 0 ? statsData[0] : null;
+  const dailyReactions = latestStat?.reactions || 0;
+  const dailyRecasts = latestStat?.recasts || 0;
+
   return (
     <AppLayout title="FarTrack">
-      <div className="p-4 space-y-6">
-        {/* Баннер */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white rounded-xl p-5 shadow-md">
-          <div className="flex items-center mb-3">
-            <div className="p-2 bg-white/20 rounded-lg mr-3">
-              <Award className="h-6 w-6" />
-            </div>
-            <h2 className="text-xl font-bold">Welcome, {userData?.displayName || 'User'}!</h2>
-          </div>
-          <p className="text-primary-100 mb-3">Track your Farcaster engagement and earn rewards</p>
-          <div className="bg-white/10 rounded-lg p-3">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium">Daily Points Progress</span>
-              <span className="text-sm font-medium">72/100</span>
-            </div>
-            <Progress value={72} className="h-2" />
+      <div className="p-4 space-y-5">
+        {/* Приветствие и профиль */}
+        <div className="flex items-center">
+          <Avatar className="h-12 w-12 border-2 border-purple-100">
+            <AvatarImage src={userData?.profileImage} alt={userData?.displayName || 'User'} />
+            <AvatarFallback>{userData?.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="ml-3">
+            <h2 className="text-lg font-bold">Hey, {userData?.displayName || 'User'}!</h2>
+            <p className="text-sm text-gray-600">Track your Farcaster engagement</p>
           </div>
         </div>
         
         {/* Счетчики */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <StatCard 
-            title="Total Points" 
+            title="Points" 
             value={userData?.totalPoints || 0}
             status="+12%"
             statusType="success"
-            icon={<BarChart2 className="h-5 w-5" />}
+            icon={<BarChart2 className="h-4 w-4 text-purple-600" />}
+            progressPercentage={72}
           />
           
           <StatCard 
-            title="Followers" 
-            value={userData?.followerCount || 0}
-            status="+5%"
-            statusType="success"
-            icon={<Users className="h-5 w-5" />}
+            title="Reactions" 
+            value={dailyReactions}
+            status="Today"
+            statusType="info"
+            icon={<Heart className="h-4 w-4 text-red-500" />}
+          />
+          
+          <StatCard 
+            title="Recasts" 
+            value={dailyRecasts}
+            status="Today"
+            statusType="info"
+            icon={<Repeat className="h-4 w-4 text-green-500" />}
           />
         </div>
         
+        {/* Баннер */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center mb-2">
+            <div className="p-1.5 bg-white/20 rounded-lg mr-2">
+              <Award className="h-5 w-5" />
+            </div>
+            <h2 className="text-base font-bold">Daily Progress</h2>
+          </div>
+          <div className="bg-white/10 rounded-lg p-2.5 mb-1">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-medium">Points Progress</span>
+              <span className="text-xs font-medium">72/100</span>
+            </div>
+            <Progress value={72} className="h-1.5 bg-white/20" />
+          </div>
+          <p className="text-xs text-white/80">Complete activities to earn more points!</p>
+        </div>
+        
         {/* Активность */}
-        <Card>
+        <Card className="border border-gray-100">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Points Activity</CardTitle>
           </CardHeader>
@@ -92,14 +118,14 @@ export default function Dashboard() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorPoints" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
                   <Area 
                     type="monotone" 
                     dataKey="points" 
-                    stroke="#6366F1" 
+                    stroke="#7c3aed" 
                     fill="url(#colorPoints)" 
                     strokeWidth={2}
                   />
@@ -120,36 +146,36 @@ export default function Dashboard() {
         {/* Достижения */}
         <div>
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-bold">Recent Achievements</h2>
-            <span className="text-xs bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 px-2 py-1 rounded-full">
+            <h2 className="text-base font-bold">Your Achievements</h2>
+            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
               {achievements?.length || 0} Total
             </span>
           </div>
           
           {achievements && achievements.length > 0 ? (
             <div className="space-y-3">
-              {achievements.slice(0, 3).map((achievement: any) => (
+              {achievements.slice(0, 2).map((achievement: any) => (
                 <motion.div 
                   key={achievement.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center"
+                  className="bg-white p-3 rounded-lg border border-gray-100 flex items-center"
                 >
-                  <div className="bg-primary-100 dark:bg-primary-900 p-2 rounded-full mr-3">
-                    <Award className="h-5 w-5 text-primary-600 dark:text-primary-300" />
+                  <div className="bg-purple-100 p-2 rounded-full mr-3">
+                    <Award className="h-4 w-4 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{achievement.name}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{achievement.description}</p>
+                    <h3 className="font-medium text-gray-900 text-sm">{achievement.name}</h3>
+                    <p className="text-xs text-gray-500">{achievement.description}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <Card className="text-center p-6">
-              <Award className="h-10 w-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+            <Card className="text-center p-6 border border-gray-100">
+              <Award className="h-10 w-10 text-gray-400 mx-auto mb-3" />
               <h3 className="font-medium mb-1">No achievements yet</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Start engaging to earn rewards</p>
+              <p className="text-sm text-gray-500">Start engaging to earn rewards</p>
             </Card>
           )}
         </div>

@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { BottomNav } from "./bottom-nav";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -10,12 +9,12 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, showHeader = true, title }: AppLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-white">
       {showHeader && (
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center">
-              <div className="bg-primary-500 text-white p-1.5 rounded mr-2">
+              <div className="bg-purple-600 text-white p-1.5 rounded mr-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -31,11 +30,10 @@ export function AppLayout({ children, showHeader = true, title }: AppLayoutProps
                   <path d="M16 14v.5"></path>
                 </svg>
               </div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-lg font-bold text-gray-900">
                 {title || "FarTrack"}
               </h1>
             </div>
-            <ThemeToggle />
           </div>
         </div>
       )}

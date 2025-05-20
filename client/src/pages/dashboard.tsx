@@ -56,8 +56,8 @@ export default function Dashboard() {
             <AvatarFallback>{userData?.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="ml-3">
-            <h2 className="text-lg font-bold">Hey, {userData?.displayName || 'User'}!</h2>
-            <p className="text-sm text-gray-600">Track your Farcaster engagement</p>
+            <h2 className="text-lg font-bold text-white">Hey, {userData?.displayName || 'User'}!</h2>
+            <p className="text-sm text-gray-400">Track your Farcaster engagement</p>
           </div>
         </div>
         
@@ -68,8 +68,9 @@ export default function Dashboard() {
             value={userData?.totalPoints || 0}
             status="+12%"
             statusType="success"
-            icon={<BarChart2 className="h-4 w-4 text-purple-600" />}
+            icon={<BarChart2 className="h-4 w-4" />}
             progressPercentage={72}
+            className="bg-[#252525] border-[#333333]"
           />
           
           <StatCard 
@@ -77,7 +78,8 @@ export default function Dashboard() {
             value={dailyReactions}
             status="Today"
             statusType="info"
-            icon={<Heart className="h-4 w-4 text-red-500" />}
+            icon={<Heart className="h-4 w-4" />}
+            className="bg-[#252525] border-[#333333]"
           />
           
           <StatCard 
@@ -85,7 +87,8 @@ export default function Dashboard() {
             value={dailyRecasts}
             status="Today"
             statusType="info"
-            icon={<Repeat className="h-4 w-4 text-green-500" />}
+            icon={<Repeat className="h-4 w-4" />}
+            className="bg-[#252525] border-[#333333]"
           />
         </div>
         
@@ -108,9 +111,9 @@ export default function Dashboard() {
         </div>
         
         {/* Активность */}
-        <Card className="border border-gray-100">
+        <Card className="border border-[#333333] bg-[#252525]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Points Activity</CardTitle>
+            <CardTitle className="text-base font-medium text-white">Points Activity</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <div className="h-36">
@@ -129,14 +132,27 @@ export default function Dashboard() {
                     fill="url(#colorPoints)" 
                     strokeWidth={2}
                   />
-                  <XAxis dataKey="name" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{fontSize: 10, fill: '#9ca3af'}} 
+                    axisLine={false} 
+                    tickLine={false} 
+                  />
                   <YAxis 
-                    tick={{fontSize: 10}} 
+                    tick={{fontSize: 10, fill: '#9ca3af'}} 
                     axisLine={false} 
                     tickLine={false} 
                     orientation="right" 
                   />
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#252525', 
+                      borderColor: '#333333',
+                      color: 'white'
+                    }}
+                    labelStyle={{color: 'white'}}
+                    itemStyle={{color: '#7c3aed'}}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -146,8 +162,8 @@ export default function Dashboard() {
         {/* Достижения */}
         <div>
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-base font-bold">Your Achievements</h2>
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+            <h2 className="text-base font-bold text-white">Your Achievements</h2>
+            <span className="text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded-full">
               {achievements?.length || 0} Total
             </span>
           </div>
@@ -159,23 +175,24 @@ export default function Dashboard() {
                   key={achievement.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white p-3 rounded-lg border border-gray-100 flex items-center"
+                  className="bg-[#252525] p-3 rounded-lg border border-[#333333] flex items-center hover:bg-[#2a2a2a] cursor-pointer"
+                  onClick={() => window.location.href = '/achievements'}
                 >
-                  <div className="bg-purple-100 p-2 rounded-full mr-3">
-                    <Award className="h-4 w-4 text-purple-600" />
+                  <div className="bg-purple-900 p-2 rounded-full mr-3">
+                    <Award className="h-4 w-4 text-purple-300" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 text-sm">{achievement.name}</h3>
-                    <p className="text-xs text-gray-500">{achievement.description}</p>
+                    <h3 className="font-medium text-white text-sm">{achievement.name}</h3>
+                    <p className="text-xs text-gray-400">{achievement.description}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <Card className="text-center p-6 border border-gray-100">
+            <Card className="text-center p-6 border border-[#333333] bg-[#252525]">
               <Award className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-              <h3 className="font-medium mb-1">No achievements yet</h3>
-              <p className="text-sm text-gray-500">Start engaging to earn rewards</p>
+              <h3 className="font-medium mb-1 text-white">No achievements yet</h3>
+              <p className="text-sm text-gray-400">Start engaging to earn rewards</p>
             </Card>
           )}
         </div>

@@ -40,25 +40,40 @@ function AchievementCard({ achievement }: AchievementCardProps) {
     trophy: <Trophy className="h-6 w-6" />,
   };
 
+  const handleShare = () => {
+    alert('Поделились достижением в Warpcast!');
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden border border-gray-100">
+      <Card className="overflow-hidden border border-[#333333] bg-[#252525] hover:bg-[#2a2a2a] cursor-pointer transition-colors">
         <div className="p-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center flex-shrink-0">
             {iconMapping[achievement.icon] || <Award className="h-5 w-5" />}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900 text-sm">{achievement.name}</h3>
-            <p className="text-xs text-gray-500">{achievement.description}</p>
-            <div className="flex items-center mt-1 text-xs text-gray-500">
+          <div className="flex-1">
+            <h3 className="font-semibold text-white text-sm">{achievement.name}</h3>
+            <p className="text-xs text-gray-400">{achievement.description}</p>
+            <div className="flex items-center mt-1 text-xs text-gray-400">
               <Calendar className="h-3 w-3 mr-1" />
               <span>{formatDate(achievement.unlockedAt)}</span>
             </div>
           </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-[#333333]"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
         </div>
       </Card>
     </motion.div>
@@ -74,28 +89,28 @@ interface LockedAchievementProps {
 
 function LockedAchievement({ title, description, icon, progress = 0 }: LockedAchievementProps) {
   return (
-    <Card className="overflow-hidden opacity-80 hover:opacity-100 transition-opacity border border-gray-100">
+    <Card className="overflow-hidden opacity-80 hover:opacity-100 transition-opacity border border-[#333333] bg-[#252525] cursor-pointer">
       <div className="p-3 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-[#333333] text-gray-400 flex items-center justify-center flex-shrink-0">
           {icon}
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-700 text-sm">{title}</h3>
-            <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">
+            <h3 className="font-semibold text-gray-300 text-sm">{title}</h3>
+            <Badge variant="outline" className="text-[10px] font-normal py-0 h-4 border-[#444444] text-gray-400">
               <Lock className="h-2.5 w-2.5 mr-1" />
               <span>Locked</span>
             </Badge>
           </div>
-          <p className="text-xs text-gray-500">{description}</p>
+          <p className="text-xs text-gray-400">{description}</p>
           
           {progress > 0 && (
             <div className="mt-2">
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-gray-500 text-[10px]">Progress</span>
-                <span className="text-gray-700 font-medium text-[10px]">{progress}%</span>
+                <span className="text-gray-400 text-[10px]">Progress</span>
+                <span className="text-gray-300 font-medium text-[10px]">{progress}%</span>
               </div>
-              <Progress value={progress} className="h-1.5" />
+              <Progress value={progress} className="h-1.5 bg-[#333333]" />
             </div>
           )}
         </div>
@@ -113,25 +128,45 @@ interface SocialTaskProps {
 }
 
 function SocialTask({ icon, title, description, points, completed = false }: SocialTaskProps) {
+  const handleTaskClick = () => {
+    if (!completed) {
+      // Здесь был бы переход на сайт Warpcast для выполнения задания
+      alert('Переход на сайт Warpcast для выполнения задания');
+    }
+  };
+
   return (
-    <Card className="overflow-hidden border border-gray-100">
+    <Card 
+      className={`overflow-hidden border border-[#333333] bg-[#252525] ${!completed && 'hover:bg-[#2a2a2a] cursor-pointer'}`}
+      onClick={!completed ? handleTaskClick : undefined}
+    >
       <div className="p-3 flex items-center">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${completed ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+          completed ? 'bg-green-900 text-green-300' : 'bg-purple-900 text-purple-300'
+        }`}>
           {icon}
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-sm flex items-center">
+          <h3 className="font-semibold text-sm flex items-center text-white">
             {title}
-            {completed && <CheckCircle className="h-3.5 w-3.5 text-green-500 ml-1.5" />}
+            {completed && <CheckCircle className="h-3.5 w-3.5 text-green-400 ml-1.5" />}
           </h3>
-          <p className="text-xs text-gray-500">{description}</p>
+          <p className="text-xs text-gray-400">{description}</p>
         </div>
         <div className="ml-2 flex flex-col items-end">
-          <Badge className={`${completed ? 'bg-gray-200 text-gray-600' : 'bg-blue-500'}`}>
+          <Badge className={`${completed ? 'bg-[#333333] text-gray-400' : 'bg-purple-900 text-purple-300'}`}>
             +{points} pts
           </Badge>
           {!completed && (
-            <Button size="sm" variant="ghost" className="text-xs mt-1 h-6 p-0">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-xs mt-1 h-6 p-0 text-purple-400 hover:text-purple-300"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTaskClick();
+              }}
+            >
               <ExternalLink className="h-3 w-3 mr-1" />
               <span>Open</span>
             </Button>

@@ -28,12 +28,12 @@ function LeaderboardItem({ user, rank, highlight }: LeaderboardItemProps) {
   return (
     <div className={cn(
       "flex items-center p-3 rounded-lg transition-colors",
-      highlight ? "bg-primary-50 dark:bg-primary-900/30" : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+      highlight ? "bg-purple-900/30" : "hover:bg-[#2a2a2a]"
     )}>
       <div className="relative">
         <Avatar className={cn(
           "h-12 w-12 border-2",
-          highlight ? "border-primary-200 dark:border-primary-800" : "border-gray-200 dark:border-gray-700"
+          highlight ? "border-purple-700" : "border-[#333333]"
         )}>
           <AvatarImage src={user.profileImage} alt={user.displayName || user.username} />
           <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
@@ -46,19 +46,19 @@ function LeaderboardItem({ user, rank, highlight }: LeaderboardItemProps) {
         </div>
       </div>
       <div className="ml-3 flex-1">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.displayName || user.username}</h4>
-        <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username}</p>
+        <h4 className="text-sm font-medium text-white">{user.displayName || user.username}</h4>
+        <p className="text-xs text-gray-400">@{user.username}</p>
       </div>
       <div className="text-right">
         <div className={cn(
           "text-sm font-semibold",
-          highlight ? "text-primary-700 dark:text-primary-400" : "text-gray-700 dark:text-gray-300"
+          highlight ? "text-purple-300" : "text-gray-300"
         )}>
           {user.totalPoints}
         </div>
         <div className={cn(
           "text-xs",
-          highlight ? "text-primary-600 dark:text-primary-500" : "text-gray-500 dark:text-gray-400"
+          highlight ? "text-purple-400" : "text-gray-400"
         )}>
           {user.followerCount} followers
         </div>

@@ -12,7 +12,7 @@ import { warpcastClient } from "@/lib/warpcast";
 import { 
   Award, Calendar, CheckCircle, Flame, Lock, MessageSquare, 
   Star, Trophy, Users, Heart, Repeat, Zap, Gift, Twitter, 
-  ExternalLink, ArrowRight, Globe, Share2
+  ExternalLink, ArrowRight, Globe, Share2, X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Achievement, User } from "@shared/schema";
@@ -251,89 +251,163 @@ export default function Achievements() {
           </div>
         </div>
         
+        {/* Twitter Follow Banner */}
+        <Card className="border border-[#333333] bg-[#252525] relative overflow-hidden">
+          <div className="absolute top-2 right-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0 rounded-full text-gray-400 hover:text-white"
+              onClick={() => document.getElementById('twitterBanner')?.classList.add('hidden')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <CardContent className="p-4" id="twitterBanner">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <Twitter className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white mb-1">Follow on Twitter</h3>
+                <p className="text-sm text-gray-300 mb-3">Follow our creator to get latest updates and earn 100 bonus points!</p>
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => window.open('https://twitter.com/yourusername', '_blank')}
+                >
+                  <Twitter className="h-4 w-4 mr-2" />
+                  Follow Now
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
         {/* Task Tabs */}
         <Tabs defaultValue="daily" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="daily" onClick={() => setActiveTab("daily")}>Daily</TabsTrigger>
-            <TabsTrigger value="social" onClick={() => setActiveTab("social")}>Social</TabsTrigger>
-            <TabsTrigger value="achievements" onClick={() => setActiveTab("achievements")}>Rewards</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-[#252525] text-gray-400">
+            <TabsTrigger value="daily" onClick={() => setActiveTab("daily")} className="data-[state=active]:bg-[#333333] data-[state=active]:text-white">Daily</TabsTrigger>
+            <TabsTrigger value="social" onClick={() => setActiveTab("social")} className="data-[state=active]:bg-[#333333] data-[state=active]:text-white">Social</TabsTrigger>
+            <TabsTrigger value="achievements" onClick={() => setActiveTab("achievements")} className="data-[state=active]:bg-[#333333] data-[state=active]:text-white">Rewards</TabsTrigger>
           </TabsList>
           
           {/* Daily Tasks */}
           <TabsContent value="daily" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-base font-bold">Daily Challenges</h2>
-              <Badge className="bg-green-500">+50 points</Badge>
+              <h2 className="text-base font-bold text-white">Daily Challenges</h2>
+              <Badge className="bg-green-900 text-green-300">+50 points</Badge>
             </div>
             
             <div className="space-y-3">
-              <Card className="border border-gray-100">
+              <Card className="border border-[#333333] bg-[#252525] cursor-pointer hover:bg-[#2a2a2a]">
                 <div className="p-3 flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mr-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3">
                     <MessageSquare className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-sm">Create 3 casts</h3>
-                    <Progress value={66} className="h-1.5 mt-1" />
+                    <h3 className="font-semibold text-sm text-white">Create 3 casts</h3>
+                    <Progress value={66} className="h-1.5 mt-1 bg-[#333333]" />
                   </div>
-                  <div className="text-xs ml-3">2/3</div>
+                  <div className="text-xs ml-3 text-gray-300">2/3</div>
                 </div>
               </Card>
               
-              <Card className="border border-gray-100">
+              <Card className="border border-[#333333] bg-[#252525] cursor-pointer hover:bg-[#2a2a2a]">
                 <div className="p-3 flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mr-3">
+                  <div className="w-10 h-10 rounded-full bg-green-900 text-green-300 flex items-center justify-center mr-3">
                     <Heart className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-sm">React to 5 casts</h3>
-                    <Progress value={100} className="h-1.5 mt-1" />
+                    <h3 className="font-semibold text-sm text-white">React to 5 casts</h3>
+                    <Progress value={100} className="h-1.5 mt-1 bg-[#333333]" />
                   </div>
-                  <div className="text-xs ml-3">5/5</div>
+                  <div className="text-xs ml-3 text-gray-300">5/5</div>
                 </div>
               </Card>
               
-              <Card className="border border-gray-100">
+              <Card className="border border-[#333333] bg-[#252525] cursor-pointer hover:bg-[#2a2a2a]">
                 <div className="p-3 flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mr-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3">
                     <Repeat className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-sm">Recast 2 posts</h3>
-                    <Progress value={50} className="h-1.5 mt-1" />
+                    <h3 className="font-semibold text-sm text-white">Recast 2 posts</h3>
+                    <Progress value={50} className="h-1.5 mt-1 bg-[#333333]" />
                   </div>
-                  <div className="text-xs ml-3">1/2</div>
+                  <div className="text-xs ml-3 text-gray-300">1/2</div>
                 </div>
               </Card>
             </div>
 
-            <div className="rounded-lg bg-gray-50 p-3">
+            <Card className="border border-[#333333] bg-[#252525] p-3">
               <div className="flex items-center mb-2">
-                <div className="p-1.5 bg-purple-100 rounded-lg mr-2 text-purple-600">
+                <div className="p-1.5 bg-purple-900 rounded-lg mr-2 text-purple-300">
                   <Zap className="h-4 w-4" />
                 </div>
-                <h3 className="font-medium text-sm">Daily Reward Progress</h3>
+                <h3 className="font-medium text-sm text-white">Daily Reward Progress</h3>
               </div>
-              <p className="text-xs text-gray-500 mb-2">Complete all tasks to receive your daily 50 points bonus!</p>
-              <Progress value={70} className="h-1.5" />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-400 mb-2">Complete all tasks to receive your daily 50 points bonus!</p>
+              <Progress value={70} className="h-1.5 bg-[#333333]" />
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>2/3 Completed</span>
                 <span>70%</span>
               </div>
-            </div>
+            </Card>
           </TabsContent>
           
           {/* Social Tasks */}
           <TabsContent value="social" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-base font-bold">Social Tasks</h2>
-              <Badge className="bg-blue-500">Big Rewards</Badge>
+              <h2 className="text-base font-bold text-white">Social Tasks</h2>
+              <Badge className="bg-purple-900 text-purple-300">Big Rewards</Badge>
             </div>
             
             <div className="space-y-3">
+              {/* Реферальная система */}
+              <Card className="border border-[#333333] bg-[#252525] p-4">
+                <CardTitle className="text-sm mb-2 text-white">Your Invite Code</CardTitle>
+                <div className="flex mb-3">
+                  <div className="flex-1 bg-[#191919] border border-[#333333] rounded-l-md p-2 text-sm font-mono text-gray-300">
+                    FARTRACK2024
+                  </div>
+                  <Button 
+                    className="rounded-l-none bg-purple-600 hover:bg-purple-700" 
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText('FARTRACK2024');
+                      toast({
+                        title: "Скопировано!",
+                        description: "Код приглашения скопирован в буфер обмена",
+                      });
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-400">Share your invite code with friends to earn 100 points for each person who joins!</p>
+                
+                <div className="mt-4 p-3 border border-[#333333] rounded-lg bg-[#191919]">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-white">Referral Stats</span>
+                    <Badge className="bg-purple-900 text-purple-300">+100 per referral</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-sm text-gray-400">Invited</div>
+                      <div className="text-xl font-bold text-white">2</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400">Points Earned</div>
+                      <div className="text-xl font-bold text-white">200</div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
               <SocialTask 
                 icon={<Twitter className="h-5 w-5" />}
-                title="Follow Farcaster on Twitter"
+                title="Follow on Twitter"
                 description="Follow @farcaster to receive news and updates"
                 points={50}
                 completed={true}
@@ -352,19 +426,6 @@ export default function Achievements() {
                 description="Join the official Farcaster Discord server"
                 points={75}
               />
-              
-              <Card className="p-4 border border-gray-100">
-                <CardTitle className="text-sm mb-2">Your Invite Code</CardTitle>
-                <div className="flex mb-3">
-                  <div className="flex-1 bg-gray-50 border border-gray-200 rounded-l-md p-2 text-sm font-mono">
-                    FARTRACK2024
-                  </div>
-                  <Button className="rounded-l-none" size="sm">
-                    Copy
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-500">Share your invite code with friends to earn 100 points for each person who joins!</p>
-              </Card>
             </div>
           </TabsContent>
           

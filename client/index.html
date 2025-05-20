@@ -45,6 +45,10 @@
 	<body>
 		<div id="root"></div>
 		<script type="module" src="/src/main.tsx"></script>
+		<script type="module">
+			import { sdk } from 'https://esm.sh/@farcaster/frame-sdk'
+			window.farcaster = sdk
+		</script>
 		<!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
 		<script
 			type="text/javascript"

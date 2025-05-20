@@ -1,6 +1,5 @@
 [build]
 builder = "nixpacks"
-buildCommand = "chmod +x build.sh && ./build.sh"
 
 [deploy]
 healthcheckPath = "/"

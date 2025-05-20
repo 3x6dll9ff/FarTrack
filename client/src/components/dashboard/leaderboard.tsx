@@ -6,6 +6,7 @@ import { ChevronRight, Crown, Medal, Trophy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@shared/schema";
+import { Button } from "@/components/ui/button";
 
 interface LeaderboardItemProps {
   user: User;
@@ -25,46 +26,44 @@ function LeaderboardItem({ user, rank, highlight }: LeaderboardItemProps) {
   const badgeBg = rank <= 3 ? badges[rank - 1].bgColor : "bg-gray-500";
 
   return (
-    <Link href={`/profile/${user.id}`}>
-      <a className={cn(
-        "flex items-center p-3 rounded-lg transition-colors",
-        highlight ? "bg-primary-50 dark:bg-primary-900/30" : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
-      )}>
-        <div className="relative">
-          <Avatar className={cn(
-            "h-12 w-12 border-2",
-            highlight ? "border-primary-200 dark:border-primary-800" : "border-gray-200 dark:border-gray-700"
-          )}>
-            <AvatarImage src={user.profileImage} alt={user.displayName || user.username} />
-            <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className={cn(
-            "absolute -top-1 -right-1 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center",
-            badgeBg
-          )}>
-            {rank}
-          </div>
+    <div className={cn(
+      "flex items-center p-3 rounded-lg transition-colors",
+      highlight ? "bg-primary-50 dark:bg-primary-900/30" : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+    )}>
+      <div className="relative">
+        <Avatar className={cn(
+          "h-12 w-12 border-2",
+          highlight ? "border-primary-200 dark:border-primary-800" : "border-gray-200 dark:border-gray-700"
+        )}>
+          <AvatarImage src={user.profileImage} alt={user.displayName || user.username} />
+          <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className={cn(
+          "absolute -top-1 -right-1 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center",
+          badgeBg
+        )}>
+          {rank}
         </div>
-        <div className="ml-3 flex-1">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.displayName || user.username}</h4>
-          <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username}</p>
+      </div>
+      <div className="ml-3 flex-1">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.displayName || user.username}</h4>
+        <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username}</p>
+      </div>
+      <div className="text-right">
+        <div className={cn(
+          "text-sm font-semibold",
+          highlight ? "text-primary-700 dark:text-primary-400" : "text-gray-700 dark:text-gray-300"
+        )}>
+          {user.totalPoints}
         </div>
-        <div className="text-right">
-          <div className={cn(
-            "text-sm font-semibold",
-            highlight ? "text-primary-700 dark:text-primary-400" : "text-gray-700 dark:text-gray-300"
-          )}>
-            {user.totalPoints}
-          </div>
-          <div className={cn(
-            "text-xs",
-            highlight ? "text-primary-600 dark:text-primary-500" : "text-gray-500 dark:text-gray-400"
-          )}>
-            {user.followerCount} followers
-          </div>
+        <div className={cn(
+          "text-xs",
+          highlight ? "text-primary-600 dark:text-primary-500" : "text-gray-500 dark:text-gray-400"
+        )}>
+          {user.followerCount} followers
         </div>
-      </a>
-    </Link>
+      </div>
+    </div>
   );
 }
 
@@ -78,12 +77,10 @@ export function Leaderboard() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-semibold">Top Performers</CardTitle>
-        <Link href="/leaderboard">
-          <a className="text-primary-600 text-sm font-medium hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
-            View All
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </a>
-        </Link>
+        <Button variant="link" className="p-0 h-auto text-primary-600 text-sm font-medium hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+          View All
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
       </CardHeader>
       <CardContent className="pt-2 space-y-4">
         {isLoading ? (
@@ -109,14 +106,17 @@ export function Leaderboard() {
             </p>
           </div>
         ) : (
-          data?.map((user: User, index: number) => (
-            <LeaderboardItem 
-              key={user.id} 
-              user={user} 
-              rank={index + 1} 
-              highlight={index === 0} 
-            />
-          ))
+          <div className="space-y-2">
+            {data?.map((user: User, index: number) => (
+              <Link key={user.id} href={`/profile/${user.id}`}>
+                <LeaderboardItem
+                  user={user}
+                  rank={index + 1}
+                  highlight={index === 0}
+                />
+              </Link>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

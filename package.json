@@ -37,6 +37,7 @@
 		"framer-motion": "^11.0.3",
 		"lucide-react": "0.323.0",
 		"memorystore": "^1.6.7",
+		"next": "15.3.2",
 		"next-themes": "0.2.1",
 		"passport": "^0.7.0",
 		"passport-local": "^1.0.0",

@@ -9,9 +9,9 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, showHeader = true, title }: AppLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-[#191919] text-white">
       {showHeader && (
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
+        <div className="sticky top-0 z-10 bg-[#191919] border-b border-[#333333]">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center">
               <div className="bg-purple-600 text-white p-1.5 rounded mr-2">
@@ -30,7 +30,7 @@ export function AppLayout({ children, showHeader = true, title }: AppLayoutProps
                   <path d="M16 14v.5"></path>
                 </svg>
               </div>
-              <h1 className="text-lg font-bold text-gray-900">
+              <h1 className="text-lg font-bold text-white">
                 {title || "FarTrack"}
               </h1>
             </div>

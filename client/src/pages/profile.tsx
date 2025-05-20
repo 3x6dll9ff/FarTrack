@@ -67,14 +67,14 @@ export default function Profile() {
   const AchievementBadge = ({ icon: Icon, count, label }: { icon: any, count: number, label: string }) => (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <div className="w-11 h-11 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+        <div className="w-11 h-11 rounded-full bg-[#333333] text-purple-400 flex items-center justify-center">
           <Icon className="h-6 w-6" />
         </div>
         <div className="absolute -bottom-1 -right-1 bg-purple-600 text-white text-xs font-bold h-5 w-5 rounded-full flex items-center justify-center">
           {count}
         </div>
       </div>
-      <span className="text-xs mt-1 text-gray-600">{label}</span>
+      <span className="text-xs mt-1 text-gray-400">{label}</span>
     </div>
   );
 
@@ -82,9 +82,9 @@ export default function Profile() {
     <AppLayout title="Profile">
       <div className="p-4 space-y-5">
         {/* Profile Header */}
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+        <div className="bg-[#252525] rounded-xl overflow-hidden shadow-sm border border-[#333333]">
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 h-24 relative">
-            <div className="absolute -bottom-12 left-4 rounded-full border-4 border-white overflow-hidden">
+            <div className="absolute -bottom-12 left-4 rounded-full border-4 border-[#252525] overflow-hidden">
               {userLoading ? (
                 <Skeleton className="h-24 w-24 rounded-full" />
               ) : (
@@ -95,47 +95,40 @@ export default function Profile() {
                 />
               )}
             </div>
-            
-            {!userLoading && (
-              <div className="absolute top-3 right-3 flex space-x-2">
-                <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
-                  <Mail className="h-4 w-4 mr-1" />
-                  <span>Message</span>
-                </Button>
-                <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
           </div>
           
           <div className="px-4 pt-14 pb-4">
             <div className="flex flex-col">
               <div className="flex justify-between items-start">
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className="text-xl font-bold text-white">
                     {userLoading ? <Skeleton className="h-6 w-32" /> : user?.displayName}
                   </h1>
-                  <p className="text-gray-500">
+                  <p className="text-gray-400">
                     {userLoading ? <Skeleton className="h-4 w-24" /> : `@${user?.username}`}
                   </p>
                 </div>
-                <Button size="sm" variant="outline" className="flex items-center gap-1 mt-1">
+                <a 
+                  href="https://warpcast.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 mt-1"
+                >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  <span>Warpcast</span>
-                </Button>
+                  <span>View on Warpcast</span>
+                </a>
               </div>
               
-              <p className="mt-3 text-sm text-gray-600">
+              <div className="mt-3 text-sm text-gray-300">
                 {userLoading ? (
                   <Skeleton className="h-4 w-full" />
                 ) : (
-                  user?.bio || "No bio available"
+                  <p>{user?.bio || "No bio available"}</p>
                 )}
-              </p>
+              </div>
               
               <div className="flex items-center gap-2 mt-3">
-                <Badge variant="outline" className="flex items-center gap-1">
+                <Badge variant="outline" className="flex items-center gap-1 border-[#333333] text-gray-300">
                   <CalendarDays className="h-3 w-3" />
                   <span>
                     {userLoading ? (
@@ -147,7 +140,7 @@ export default function Profile() {
                 </Badge>
                 
                 {!userLoading && (
-                  <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 flex items-center gap-1">
+                  <Badge className="bg-purple-900 text-purple-300 hover:bg-purple-800 flex items-center gap-1">
                     <Award className="h-3 w-3" />
                     <span>{user?.totalPoints || 0} points</span>
                   </Badge>
@@ -182,26 +175,26 @@ export default function Profile() {
         </div>
         
         {/* Points Progress */}
-        <Card className="border border-gray-100">
+        <Card className="border border-[#333333] bg-[#252525]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium flex items-center">
-              <Sparkles className="h-4 w-4 mr-1.5 text-purple-600" />
+            <CardTitle className="text-base font-medium flex items-center text-white">
+              <Sparkles className="h-4 w-4 mr-1.5 text-purple-400" />
               Points Level Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Level {user?.totalPoints ? Math.floor(user.totalPoints / 100) : 0}</span>
-                <span className="text-gray-500">
+                <span className="font-medium text-white">Level {user?.totalPoints ? Math.floor(user.totalPoints / 100) : 0}</span>
+                <span className="text-gray-400">
                   {user?.totalPoints ? user.totalPoints % 100 : 0}/100 to Level {user?.totalPoints ? Math.floor(user.totalPoints / 100) + 1 : 1}
                 </span>
               </div>
               <Progress 
                 value={user?.totalPoints ? user.totalPoints % 100 : 0} 
-                className="h-2" 
+                className="h-2 bg-[#333333]"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-400 mt-1">
                 Earn more points by completing daily challenges and social tasks!
               </p>
             </div>
@@ -210,10 +203,10 @@ export default function Profile() {
         
         {/* Tabs Section */}
         <Tabs defaultValue="stats" className="mt-2">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-            <TabsTrigger value="achievements">Badges</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-[#252525] text-gray-400">
+            <TabsTrigger value="stats" className="data-[state=active]:bg-[#333333] data-[state=active]:text-white">Stats</TabsTrigger>
+            <TabsTrigger value="achievements" className="data-[state=active]:bg-[#333333] data-[state=active]:text-white">Badges</TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-[#333333] data-[state=active]:text-white">Activity</TabsTrigger>
           </TabsList>
           
           {/* Stats Tab */}

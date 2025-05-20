@@ -39,7 +39,7 @@ export function BottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 flex justify-around">
+    <div className="fixed bottom-0 left-0 right-0 bg-[#191919] border-t border-[#333333] z-50 flex justify-around">
       <NavItem href="/" label="Home" icon={Home} />
       <NavItem href="/achievements" label="Earn" icon={Award} />
       <NavItem href="/profile/1" label="Profile" icon={User} />

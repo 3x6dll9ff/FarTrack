@@ -413,6 +413,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		}
 	})
 
+	// Helper function to fetch user from Warpcast API
+	async function fetchWarpcastUser(fid: number) {
+		try {
+			const response = await fetch(`${WARPCAST_API_URL}/user/${fid}`)
+			if (!response.ok) {
+				console.error(
+					'[WARPCAST] Error response:',
+					response.status,
+					response.statusText
+				)
+				return null
+			}
+			const data = await response.json()
+			return data.result?.user || null
+		} catch (error) {
+			console.error('[WARPCAST] Error:', error)
+			return null
+		}
+	}
+
 	// Helper function to verify Farcaster sign-in message
 	async function verifySignInMessage(
 		message: string,
@@ -422,9 +442,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		try {
 			// TODO: Implement actual Farcaster signature verification
 			// This is a placeholder that should be replaced with actual verification logic
+			const decodedMessage = JSON.parse(message)
 			return {
 				success: true,
-				fid: 1, // This should be extracted from the verified message
+				fid: decodedMessage.fid || 1, // Extract FID from message
 			}
 		} catch (error) {
 			console.error('Error verifying signature:', error)

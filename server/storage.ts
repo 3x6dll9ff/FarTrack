@@ -238,6 +238,42 @@ export class MemStorage implements IStorage {
 			(a, b) => b.startDate.getTime() - a.startDate.getTime()
 		)
 	}
+
+	async createOrUpdateUser(
+		userData: Partial<User> & { fid: number }
+	): Promise<User> {
+		const existingUser = Array.from(this.users.values()).find(
+			u => u.fid === userData.fid
+		)
+
+		if (existingUser) {
+			// Update existing user
+			const updatedUser = {
+				...existingUser,
+				...userData,
+				updated_at: new Date().toISOString(),
+			}
+			this.users.set(existingUser.id, updatedUser)
+			return updatedUser
+		} else {
+			// Create new user
+			const newUser: User = {
+				id: this.counters.user++,
+				fid: userData.fid,
+				username: userData.username || '',
+				displayName: userData.displayName || '',
+				bio: userData.bio || '',
+				profileImage: userData.profileImage || null,
+				followerCount: userData.followerCount || null,
+				followingCount: userData.followingCount || null,
+				registrationDate: new Date(),
+				lastActive: new Date(),
+				totalPoints: 0,
+			}
+			this.users.set(newUser.id, newUser)
+			return newUser
+		}
+	}
 }
 
 export const storage = new MemStorage()

@@ -26,7 +26,10 @@ export function BottomNav({ user }: BottomNavProps) {
 	}
 
 	return (
-		<div className='w-full bg-[#252525] border-t border-[#333333] fixed bottom-0 left-0 right-0 safe-bottom'>
+		<div
+			className='w-full bg-[#252525] border-t border-[#333333] fixed bottom-0 left-0 right-0'
+			style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+		>
 			<div className='max-w-screen-xl mx-auto px-4'>
 				<div className='flex items-center justify-between'>
 					{navItems.map(({ path, icon: Icon, label }) => {

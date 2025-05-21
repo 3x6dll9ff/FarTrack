@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/app-layout'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { type FrameContext } from '@farcaster/frame-sdk'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ArrowUp, Award, Heart, Repeat } from 'lucide-react'
@@ -16,7 +17,11 @@ import {
 	YAxis,
 } from 'recharts'
 
-export default function Dashboard() {
+interface DashboardProps {
+	user?: FrameContext['user']
+}
+
+export default function Dashboard({ user }: DashboardProps) {
 	// Получение данных пользователя
 	const { data: userData } = useQuery({
 		queryKey: ['/api/users/1'],
@@ -62,16 +67,28 @@ export default function Dashboard() {
 				<div className='flex items-center'>
 					<Avatar className='h-12 w-12 border-2 border-purple-100'>
 						<AvatarImage
-							src={userData?.profileImage}
-							alt={userData?.displayName || 'User'}
+							src={user?.pfpUrl || userData?.profileImage}
+							alt={
+								user?.displayName ||
+								user?.username ||
+								userData?.displayName ||
+								'User'
+							}
 						/>
 						<AvatarFallback>
-							{userData?.username?.substring(0, 2).toUpperCase()}
+							{user?.username?.substring(0, 2).toUpperCase() ||
+								userData?.username?.substring(0, 2).toUpperCase() ||
+								'RU'}
 						</AvatarFallback>
 					</Avatar>
 					<div className='ml-3'>
 						<h2 className='text-lg font-bold text-white'>
-							Hey, {userData?.displayName || 'User'}!
+							Hey,{' '}
+							{user?.displayName ||
+								user?.username ||
+								userData?.displayName ||
+								'User'}
+							!
 						</h2>
 						<p className='text-sm text-gray-400'>
 							Track your Farcaster engagement

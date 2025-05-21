@@ -18,7 +18,7 @@ interface RouterProps {
 function Router({ user }: RouterProps) {
 	return (
 		<Switch>
-			<Route path='/' component={Dashboard} />
+			<Route path='/'>{params => <Dashboard user={user} {...params} />}</Route>
 			<Route path='/profile/:id' component={Profile} />
 			<Route path='/analytics' component={Analytics} />
 			<Route path='/achievements' component={Achievements} />

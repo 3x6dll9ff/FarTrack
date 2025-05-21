@@ -349,5 +349,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		}
 	})
 
+	// Auth verification endpoint
+	app.post('/api/auth/verify', async (req, res) => {
+		try {
+			const { message, signature, nonce } = req.body
+
+			if (!message || !signature || !nonce) {
+				return res.status(400).json({
+					success: false,
+					message: 'Missing required authentication data',
+				})
+			}
+
+			// Verify the signature using Farcaster's verification
+			const verificationResult = await verifySignInMessage(
+				message,
+				signature,
+				nonce
+			)
+
+			if (!verificationResult.success) {
+				return res.status(401).json({
+					success: false,
+					message: 'Invalid signature',
+				})
+			}
+
+			// Get user data from Warpcast API
+			const warpcastUser = await fetchWarpcastUser(verificationResult.fid)
+
+			if (!warpcastUser) {
+				return res.status(404).json({
+					success: false,
+					message: 'User not found on Warpcast',
+				})
+			}
+
+			// Create or update user in our storage
+			const user = await storage.createOrUpdateUser({
+				fid: verificationResult.fid,
+				username: warpcastUser.username,
+				display_name: warpcastUser.displayName,
+				pfp_url: warpcastUser.pfp,
+				bio: warpcastUser.bio,
+				active_on_farcaster: true,
+				registered_at: new Date().toISOString(),
+			})
+
+			// Generate session token
+			const token = generateSessionToken(user)
+
+			res.json({
+				success: true,
+				token,
+				user,
+			})
+		} catch (error) {
+			console.error('Error verifying authentication:', error)
+			res.status(500).json({
+				success: false,
+				message: 'Internal server error',
+			})
+		}
+	})
+
+	// Helper function to verify Farcaster sign-in message
+	async function verifySignInMessage(
+		message: string,
+		signature: string,
+		nonce: string
+	) {
+		try {
+			// TODO: Implement actual Farcaster signature verification
+			// This is a placeholder that should be replaced with actual verification logic
+			return {
+				success: true,
+				fid: 1, // This should be extracted from the verified message
+			}
+		} catch (error) {
+			console.error('Error verifying signature:', error)
+			return {
+				success: false,
+				error: 'Signature verification failed',
+			}
+		}
+	}
+
+	// Helper function to generate session token
+	function generateSessionToken(user: any) {
+		// TODO: Implement proper JWT token generation
+		// This is a placeholder that should be replaced with actual JWT generation
+		return `session_${user.fid}_${Date.now()}`
+	}
+
 	return createServer(app)
 }

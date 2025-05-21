@@ -100,33 +100,16 @@ export const warpcastClient = new WarpcastClient(
 )
 
 // Function to get user profile from Warpcast
-export const getWarpcastUserProfile = async (
-	fid: number
-): Promise<WarpcastUserProfile | null> => {
+export const getWarpcastUserProfile = async (fid: number) => {
 	try {
-		console.log('Fetching Warpcast user profile for FID:', fid)
-		const url = `/api/warpcast/user/${fid}`
-		console.log('API URL:', url)
-
-		const response = await fetch(url)
-		console.log('API Response status:', response.status)
-
+		const response = await fetch(`/api/warpcast/user/${fid}`)
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`)
 		}
-
-		const data = await response.json()
-		console.log('API Response data:', data)
-
-		if (!data.result?.user) {
-			console.error('No user data in response:', data)
-			return null
-		}
-
-		return data.result.user
+		return await response.json()
 	} catch (error) {
 		console.error('Error fetching Warpcast user profile:', error)
-		return null
+		throw error
 	}
 }
 

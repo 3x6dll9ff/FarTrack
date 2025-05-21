@@ -6,8 +6,8 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
+import { getCurrentUserFid, initAuth } from '@/lib/auth'
 import { clientLog } from '@/lib/clientLogger'
-import { sdk } from '@/lib/sdk'
 import { getWarpcastUserProfile } from '@/lib/warpcast'
 import { Achievement } from '@shared/schema'
 import { useQuery } from '@tanstack/react-query'
@@ -33,27 +33,20 @@ export default function Profile({ user }: ProfileProps) {
 	const { id } = useParams()
 	const { toast } = useToast()
 
-	// Get context from SDK
+	// Initialize authentication
 	useEffect(() => {
-		// Log full SDK context
-		clientLog(
-			'Full SDK Context:',
-			JSON.stringify(
-				{
-					context: sdk.context,
-					user: sdk.context.user,
-					location: sdk.context.location,
-					client: sdk.context.client,
-				},
-				null,
-				2
-			)
-		)
-	}, [])
+		initAuth().catch(error => {
+			clientLog('Failed to initialize authentication:', error)
+			toast({
+				title: 'Authentication Error',
+				description: 'Failed to authenticate with Farcaster',
+				variant: 'destructive',
+			})
+		})
+	}, [toast])
 
 	// Get user data from SDK context
-	const userFid = sdk.context.user?.fid
-	const username = sdk.context.user?.username
+	const userFid = getCurrentUserFid()
 
 	// First fetch Warpcast user data to get the correct FID
 	const {
@@ -61,28 +54,21 @@ export default function Profile({ user }: ProfileProps) {
 		isLoading: warpcastLoading,
 		isError: warpcastError,
 	} = useQuery({
-		queryKey: ['warpcast-user', username],
+		queryKey: ['warpcast-user', userFid],
 		queryFn: async () => {
-			if (!username) {
-				clientLog('No username available for Warpcast API request')
-				throw new Error('Username missing')
+			if (!userFid) {
+				clientLog('No FID available for Warpcast API request')
+				throw new Error('FID missing')
 			}
-			clientLog('Fetching Warpcast data for username:', username)
-			const data = await getWarpcastUserProfile(username)
-			clientLog(
-				'Warpcast API Response:',
-				JSON.stringify(
-					{
-						requestedUsername: username,
-						response: data,
-					},
-					null,
-					2
-				)
-			)
+			clientLog('Fetching Warpcast data for FID:', userFid)
+			const data = await getWarpcastUserProfile(userFid)
+			clientLog('Warpcast API Response:', {
+				requestedFid: userFid,
+				response: data,
+			})
 			return data
 		},
-		enabled: !!username,
+		enabled: !!userFid,
 	})
 
 	// Fetch user data from our API using the FID from SDK context
@@ -116,16 +102,10 @@ export default function Profile({ user }: ProfileProps) {
 					return await syncResponse.json()
 				}
 				const data = await response.json()
-				clientLog(
-					'User data fetched successfully',
-					JSON.stringify({ data }, null, 2)
-				)
+				clientLog('User data fetched successfully', { data })
 				return data
 			} catch (error) {
-				clientLog(
-					'Error fetching user data',
-					JSON.stringify({ error }, null, 2)
-				)
+				clientLog('Error fetching user data', { error })
 				throw error
 			}
 		},
@@ -302,7 +282,10 @@ export default function Profile({ user }: ProfileProps) {
 	const renderContent = () => {
 		// Show skeleton if loading or no data/error after loading
 		if (isLoading || (!hasData && !isLoading && !hasError)) {
-			clientLog('Rendering Profile Skeleton', { isLoading, hasData, hasError })
+			clientLog(
+				'Rendering Profile Skeleton',
+				JSON.stringify({ isLoading, hasData, hasError }, null, 2)
+			)
 			return (
 				<div className='p-4 space-y-6'>
 					{/* Profile Header Skeleton */}
@@ -338,7 +321,10 @@ export default function Profile({ user }: ProfileProps) {
 				</div>
 			)
 		} else if (hasError) {
-			clientLog('Rendering Profile Error State', { hasError })
+			clientLog(
+				'Rendering Profile Error State',
+				JSON.stringify({ hasError }, null, 2)
+			)
 			return (
 				<div className='flex flex-col items-center justify-center h-full text-red-400'>
 					<p>Error loading profile data.</p>
@@ -355,7 +341,10 @@ export default function Profile({ user }: ProfileProps) {
 				</div>
 			)
 		} else {
-			clientLog('Rendering Profile Content', { profileUser })
+			clientLog(
+				'Rendering Profile Content',
+				JSON.stringify({ profileUser }, null, 2)
+			)
 			return (
 				<div className='p-4 space-y-6'>
 					{/* Debug Information */}

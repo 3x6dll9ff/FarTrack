@@ -20,7 +20,7 @@ export function AppLayout({ children, title, user }: AppLayoutProps) {
 
 	return (
 		<div className='h-screen w-screen bg-[#1a1a1a] text-white flex flex-col'>
-			<main className='flex-1 h-full w-full pb-20 safe-bottom'>{children}</main>
+			<main className='flex-1 h-full w-full pb-24 safe-bottom'>{children}</main>
 			<BottomNav user={user} />
 		</div>
 	)

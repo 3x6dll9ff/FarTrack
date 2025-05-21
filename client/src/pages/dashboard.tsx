@@ -22,23 +22,67 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user }: DashboardProps) {
+	console.log('Dashboard rendered. User prop:', user)
+
 	// Получение данных пользователя
-	const { data: userData } = useQuery({
+	const {
+		data: userData,
+		isLoading: isLoadingUser,
+		error: userError,
+	} = useQuery({
 		queryKey: ['/api/users/1'],
 		queryFn: () => fetch('/api/users/1').then(res => res.json()),
 	})
 
 	// Получение статистики
-	const { data: statsData } = useQuery({
+	const {
+		data: statsData,
+		isLoading: isLoadingStats,
+		error: statsError,
+	} = useQuery({
 		queryKey: ['/api/users/1/stats', 'summary'],
 		queryFn: () => fetch('/api/users/1/stats').then(res => res.json()),
 	})
 
 	// Получение достижений
-	const { data: achievements } = useQuery({
+	const {
+		data: achievements,
+		isLoading: isLoadingAchievements,
+		error: achievementsError,
+	} = useQuery({
 		queryKey: ['/api/users/1/achievements'],
 		queryFn: () => fetch('/api/users/1/achievements').then(res => res.json()),
 	})
+
+	console.log('useQuery data:', { userData, statsData, achievements })
+	console.log('useQuery loading status:', {
+		isLoadingUser,
+		isLoadingStats,
+		isLoadingAchievements,
+	})
+	console.log('useQuery errors:', { userError, statsError, achievementsError })
+
+	// Handle loading state
+	if (isLoadingUser || isLoadingStats || isLoadingAchievements) {
+		return (
+			<AppLayout title='Loading...'>
+				<div>Loading Dashboard data...</div>
+			</AppLayout>
+		)
+	}
+
+	// Handle errors
+	if (userError || statsError || achievementsError) {
+		console.error(
+			'Dashboard loading error:',
+			userError || statsError || achievementsError
+		)
+		return (
+			<AppLayout title='Error'>
+				<div>Error loading dashboard data.</div>
+			</AppLayout>
+		)
+	}
 
 	// Подготовка данных для графика
 	const chartData = statsData

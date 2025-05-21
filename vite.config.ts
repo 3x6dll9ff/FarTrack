@@ -50,5 +50,6 @@ export default defineConfig({
 	},
 	optimizeDeps: {
 		include: ['@babel/preset-typescript'],
+		exclude: ['lightningcss'],
 	},
 })

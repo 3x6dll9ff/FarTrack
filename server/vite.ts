@@ -117,5 +117,10 @@ build({
 		'@radix-ui/react-tabs',
 		'@radix-ui/react-toast',
 		'@radix-ui/react-tooltip',
+		'vite',
+		'@vitejs/plugin-react',
 	],
+	banner: {
+		js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
+	},
 }).catch(() => process.exit(1))

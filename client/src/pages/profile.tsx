@@ -33,7 +33,18 @@ export default function Profile({ user }: ProfileProps) {
 	const userId = id === 'me' ? user?.fid : id ? parseInt(id) : undefined
 	const { toast } = useToast()
 
-	clientLog('Profile component mounted', { userId, user })
+	// Log user context data
+	clientLog('User Context Data:', {
+		rawUser: user,
+		parsedUser: {
+			fid: user?.fid,
+			username: user?.username,
+			displayName: user?.displayName,
+			pfp: user?.pfp,
+			bio: user?.bio,
+			location: user?.location,
+		},
+	})
 
 	// Fetch Warpcast user data
 	const {
@@ -47,7 +58,10 @@ export default function Profile({ user }: ProfileProps) {
 				throw new Error('User ID missing')
 			}
 			const data = await getWarpcastUserProfile(userId)
-			clientLog('Warpcast user data:', data)
+			clientLog('Warpcast API Response:', {
+				requestedFid: userId,
+				response: data,
+			})
 			return data
 		},
 		enabled: !!userId,

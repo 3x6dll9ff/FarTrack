@@ -96,6 +96,15 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 	res.status(status).json({ message })
 	log(`Error: ${message}`, 'error')
 })
+
+// Serve static files (client build)
+const staticPath =
+	process.env.NODE_ENV === 'production'
+		? path.join(__dirname, '../public') // In production, serve from dist/public
+		: path.join(__dirname, '../client/dist') // In development, serve from client/dist
+
+app.use(express.static(staticPath))
+
 ;(async () => {
 	try {
 		// Регистрируем API маршруты

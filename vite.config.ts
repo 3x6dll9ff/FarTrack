@@ -10,7 +10,7 @@ export default defineConfig({
 	plugins: [react()],
 	resolve: {
 		alias: {
-			'@': resolve(__dirname, './src'),
+			'@': resolve(__dirname, 'client/src'),
 			'@shared': resolve(__dirname, 'shared'),
 			'@assets': resolve(__dirname, 'attached_assets'),
 		},
@@ -49,6 +49,6 @@ export default defineConfig({
 		chunkSizeWarningLimit: 1000,
 	},
 	optimizeDeps: {
-		include: ['@babel/preset-typescript', 'lightningcss'],
+		include: ['@babel/preset-typescript'],
 	},
 })

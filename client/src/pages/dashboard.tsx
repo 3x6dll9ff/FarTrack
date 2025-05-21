@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/app-layout'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { clientLog } from '@/lib/clientLog'
 import { type FrameContext } from '@farcaster/frame-sdk'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
@@ -22,7 +23,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user }: DashboardProps) {
-	console.log('Dashboard rendered. User prop:', user)
+	clientLog('info', 'Dashboard rendered. User prop:', user)
 
 	// Получение данных пользователя
 	const {
@@ -31,7 +32,30 @@ export default function Dashboard({ user }: DashboardProps) {
 		error: userError,
 	} = useQuery({
 		queryKey: ['/api/users/1'],
-		queryFn: () => fetch('/api/users/1').then(res => res.json()),
+		queryFn: async () => {
+			clientLog('info', 'Fetching user data from /api/users/1')
+			try {
+				const res = await fetch('/api/users/1')
+				if (!res.ok) {
+					const errorData = await res.text()
+					clientLog('error', 'Error response fetching user data:', {
+						status: res.status,
+						errorData,
+					})
+					throw new Error(
+						`HTTP error! status: ${res.status}, message: ${errorData}`
+					)
+				}
+				const data = await res.json()
+				clientLog('info', 'Successfully fetched user data:', data)
+				return data
+			} catch (error) {
+				clientLog('error', 'Error fetching user data:', {
+					error: error.message,
+				})
+				throw error // Re-throw the error so useQuery catches it
+			}
+		},
 	})
 
 	// Получение статистики
@@ -41,7 +65,30 @@ export default function Dashboard({ user }: DashboardProps) {
 		error: statsError,
 	} = useQuery({
 		queryKey: ['/api/users/1/stats', 'summary'],
-		queryFn: () => fetch('/api/users/1/stats').then(res => res.json()),
+		queryFn: async () => {
+			clientLog('info', 'Fetching stats data from /api/users/1/stats')
+			try {
+				const res = await fetch('/api/users/1/stats')
+				if (!res.ok) {
+					const errorData = await res.text()
+					clientLog('error', 'Error response fetching stats data:', {
+						status: res.status,
+						errorData,
+					})
+					throw new Error(
+						`HTTP error! status: ${res.status}, message: ${errorData}`
+					)
+				}
+				const data = await res.json()
+				clientLog('info', 'Successfully fetched stats data:', data)
+				return data
+			} catch (error) {
+				clientLog('error', 'Error fetching stats data:', {
+					error: error.message,
+				})
+				throw error // Re-throw the error
+			}
+		},
 	})
 
 	// Получение достижений
@@ -51,10 +98,36 @@ export default function Dashboard({ user }: DashboardProps) {
 		error: achievementsError,
 	} = useQuery({
 		queryKey: ['/api/users/1/achievements'],
-		queryFn: () => fetch('/api/users/1/achievements').then(res => res.json()),
+		queryFn: async () => {
+			clientLog(
+				'info',
+				'Fetching achievements data from /api/users/1/achievements'
+			)
+			try {
+				const res = await fetch('/api/users/1/achievements')
+				if (!res.ok) {
+					const errorData = await res.text()
+					clientLog('error', 'Error response fetching achievements data:', {
+						status: res.status,
+						errorData,
+					})
+					throw new Error(
+						`HTTP error! status: ${res.status}, message: ${errorData}`
+					)
+				}
+				const data = await res.json()
+				clientLog('info', 'Successfully fetched achievements data:', data)
+				return data
+			} catch (error) {
+				clientLog('error', 'Error fetching achievements data:', {
+					error: error.message,
+				})
+				throw error // Re-throw the error
+			}
+		},
 	})
 
-	console.log('useQuery data:', { userData, statsData, achievements })
+	clientLog('info', 'useQuery data:', { userData, statsData, achievements })
 	console.log('useQuery loading status:', {
 		isLoadingUser,
 		isLoadingStats,

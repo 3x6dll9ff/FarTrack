@@ -164,5 +164,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		}
 	})
 
+	// Add new log endpoint
+	app.post('/api/log', (req, res) => {
+		const { level, message, ...metadata } = req.body
+		// Log the message on the server side
+		const logMessage = `[CLIENT LOG] [${level || 'info'}] ${message}`
+		if (Object.keys(metadata).length > 0) {
+			console.log(logMessage, JSON.stringify(metadata))
+		} else {
+			console.log(logMessage)
+		}
+		res.sendStatus(200)
+	})
+
 	return createServer(app)
 }

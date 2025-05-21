@@ -1,14 +1,18 @@
 # Этап сборки
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Устанавливаем только необходимые системные зависимости
-RUN apk add --no-cache libc6-compat
+# Устанавливаем необходимые системные зависимости
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Копируем файлы для установки зависимостей
 COPY package.json package-lock.json .npmrc ./
-RUN npm install --no-optional
+RUN npm install
 
 # Копируем исходный код
 COPY . .
@@ -17,12 +21,9 @@ COPY . .
 RUN npm run build
 
 # Этап запуска
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
-
-# Устанавливаем только необходимые системные зависимости
-RUN apk add --no-cache libc6-compat
 
 # Копируем только необходимые файлы
 COPY --from=builder /app/dist ./dist
@@ -31,7 +32,7 @@ COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/.npmrc ./
 
 # Устанавливаем только production зависимости
-RUN npm ci --only=production --no-optional --ignore-scripts
+RUN npm ci --only=production --ignore-scripts
 
 # Устанавливаем переменные окружения
 ENV NODE_ENV=production

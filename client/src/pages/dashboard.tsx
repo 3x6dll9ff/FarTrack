@@ -137,6 +137,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
 	// Handle loading state
 	if (isLoadingUser || isLoadingStats || isLoadingAchievements) {
+		clientLog('info', 'Dashboard is in loading state')
 		return (
 			<AppLayout title='Loading...'>
 				<div>Loading Dashboard data...</div>
@@ -146,10 +147,11 @@ export default function Dashboard({ user }: DashboardProps) {
 
 	// Handle errors
 	if (userError || statsError || achievementsError) {
-		console.error(
-			'Dashboard loading error:',
-			userError || statsError || achievementsError
-		)
+		clientLog('error', 'Dashboard loading error:', {
+			userError,
+			statsError,
+			achievementsError,
+		})
 		return (
 			<AppLayout title='Error'>
 				<div>Error loading dashboard data.</div>
@@ -157,25 +159,43 @@ export default function Dashboard({ user }: DashboardProps) {
 		)
 	}
 
+	// Log the state before rendering
+	clientLog('info', 'Preparing to render dashboard with data:', {
+		hasUserData: !!userData,
+		hasStatsData: !!statsData?.length,
+		hasAchievements: !!achievements?.length,
+	})
+
 	// Подготовка данных для графика
-	const chartData = statsData
-		? statsData.slice(0, 7).map((stat: any) => ({
-				name: new Date(stat.startDate).toLocaleDateString('en-US', {
-					month: 'short',
-					day: 'numeric',
-				}),
-				points:
-					stat.casts * 10 +
-					stat.replies * 5 +
-					stat.reactions * 2 +
-					stat.recasts * 8,
-		  }))
-		: []
+	const chartData =
+		statsData && statsData.length > 0
+			? statsData.slice(0, 7).map((stat: any) => ({
+					name: new Date(stat.startDate).toLocaleDateString('en-US', {
+						month: 'short',
+						day: 'numeric',
+					}),
+					points:
+						stat.casts * 10 +
+						stat.replies * 5 +
+						stat.reactions * 2 +
+						stat.recasts * 8,
+			  }))
+			: []
 
 	// Получение статистики за последние сутки
 	const latestStat = statsData && statsData.length > 0 ? statsData[0] : null
 	const dailyReactions = latestStat?.reactions || 0
 	const dailyRecasts = latestStat?.recasts || 0
+
+	// Ensure we have at least user data before rendering
+	if (!userData) {
+		clientLog('error', 'No user data available for rendering')
+		return (
+			<AppLayout title='Error'>
+				<div>Unable to load user data.</div>
+			</AppLayout>
+		)
+	}
 
 	return (
 		<AppLayout title='FarTrack'>
@@ -262,51 +282,61 @@ export default function Dashboard({ user }: DashboardProps) {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className='pt-2 px-2'>
-						<div className='h-48'>
-							<ResponsiveContainer width='100%' height='100%'>
-								<BarChart
-									data={chartData}
-									margin={{ top: 10, right: 5, left: 5, bottom: 10 }}
-								>
-									<Bar dataKey='points' fill='#7c3aed' radius={[4, 4, 0, 0]} />
-									<XAxis
-										dataKey='name'
-										tick={{ fontSize: 10, fill: '#9ca3af' }}
-										axisLine={false}
-										tickLine={false}
-										padding={{ left: 5, right: 5 }}
-									/>
-									<YAxis
-										tick={{ fontSize: 10, fill: '#9ca3af' }}
-										axisLine={false}
-										tickLine={false}
-										orientation='right'
-										width={30}
-									/>
-									<Tooltip
-										contentStyle={{
-											backgroundColor: '#252525',
-											borderColor: '#333333',
-											color: '#9ca3af',
-											borderRadius: '8px',
-											boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-											padding: '8px 12px',
-										}}
-										labelStyle={{
-											color: '#9ca3af',
-											fontSize: '12px',
-											marginBottom: '4px',
-										}}
-										itemStyle={{
-											color: '#7c3aed',
-											fontSize: '12px',
-											padding: '2px 0',
-										}}
-										cursor={{ fill: 'rgba(124, 58, 237, 0.1)' }}
-									/>
-								</BarChart>
-							</ResponsiveContainer>
-						</div>
+						{chartData.length > 0 ? (
+							<div className='h-48'>
+								<ResponsiveContainer width='100%' height='100%'>
+									<BarChart
+										data={chartData}
+										margin={{ top: 10, right: 5, left: 5, bottom: 10 }}
+									>
+										<Bar
+											dataKey='points'
+											fill='#7c3aed'
+											radius={[4, 4, 0, 0]}
+										/>
+										<XAxis
+											dataKey='name'
+											tick={{ fontSize: 10, fill: '#9ca3af' }}
+											axisLine={false}
+											tickLine={false}
+											padding={{ left: 5, right: 5 }}
+										/>
+										<YAxis
+											tick={{ fontSize: 10, fill: '#9ca3af' }}
+											axisLine={false}
+											tickLine={false}
+											orientation='right'
+											width={30}
+										/>
+										<Tooltip
+											contentStyle={{
+												backgroundColor: '#252525',
+												borderColor: '#333333',
+												color: '#9ca3af',
+												borderRadius: '8px',
+												boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+												padding: '8px 12px',
+											}}
+											labelStyle={{
+												color: '#9ca3af',
+												fontSize: '12px',
+												marginBottom: '4px',
+											}}
+											itemStyle={{
+												color: '#7c3aed',
+												fontSize: '12px',
+												padding: '2px 0',
+											}}
+											cursor={{ fill: 'rgba(124, 58, 237, 0.1)' }}
+										/>
+									</BarChart>
+								</ResponsiveContainer>
+							</div>
+						) : (
+							<div className='h-48 flex items-center justify-center text-gray-400'>
+								No activity data available yet
+							</div>
+						)}
 					</CardContent>
 				</Card>
 

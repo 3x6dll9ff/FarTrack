@@ -30,7 +30,9 @@ interface ProfileProps {
 
 export default function Profile({ user }: ProfileProps) {
 	const { id } = useParams()
-	const userId = id === 'me' ? user?.fid : id ? parseInt(id) : undefined
+	// Use the FID from user context if available, otherwise fallback to URL param
+	const userId =
+		user?.fid || (id === 'me' ? user?.fid : id ? parseInt(id) : undefined)
 	const { toast } = useToast()
 
 	// Log user context data
@@ -44,6 +46,7 @@ export default function Profile({ user }: ProfileProps) {
 			bio: user?.bio,
 			location: user?.location,
 		},
+		selectedUserId: userId,
 	})
 
 	// Fetch Warpcast user data
@@ -55,8 +58,10 @@ export default function Profile({ user }: ProfileProps) {
 		queryKey: ['warpcast-user', userId],
 		queryFn: async () => {
 			if (!userId) {
+				clientLog('No user ID available for Warpcast API request')
 				throw new Error('User ID missing')
 			}
+			clientLog('Fetching Warpcast data for FID:', userId)
 			const data = await getWarpcastUserProfile(userId)
 			clientLog('Warpcast API Response:', {
 				requestedFid: userId,

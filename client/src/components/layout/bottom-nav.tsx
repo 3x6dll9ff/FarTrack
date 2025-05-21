@@ -1,24 +1,12 @@
-import { cn } from '@/lib/utils'
+import { clientLog } from '@/lib/clientLogger'
 import { type FrameContext } from '@farcaster/frame-sdk'
 import { Home, Trophy, User } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const navItems = [
-	{
-		label: 'Home',
-		icon: Home,
-		path: '/',
-	},
-	{
-		label: 'Achievements',
-		icon: Trophy,
-		path: '/achievements',
-	},
-	{
-		label: 'Profile',
-		icon: User,
-		path: '',
-	},
+	{ path: '/', icon: Home, label: 'Home' },
+	{ path: '/achievements', icon: Trophy, label: 'Achievements' },
+	{ path: '/profile/1', icon: User, label: 'Profile' },
 ]
 
 interface BottomNavProps {
@@ -29,43 +17,42 @@ export function BottomNav({ user }: BottomNavProps) {
 	const location = useLocation()
 	const navigate = useNavigate()
 
-	const profilePath = user?.fid ? `/profile/${user.fid}` : null
-
-	const updatedNavItems = navItems.map(item =>
-		item.label === 'Profile' ? { ...item, path: profilePath } : item
-	)
+	const handleNavigation = (path: string) => {
+		clientLog('info', 'Navigating to:', {
+			path,
+			currentPath: location.pathname,
+		})
+		navigate(path)
+	}
 
 	return (
-		<nav className='fixed bottom-[5px] left-0 right-0 bg-[#252525] border-t border-[#333333]'>
-			<div className='flex justify-around items-center h-16 px-4'>
-				{updatedNavItems.map(item => {
-					const isActive = location.pathname === item.path && item.path !== null
+		<div className='w-full bg-[#252525] border-t border-[#333333] fixed bottom-0 left-0 right-0 safe-bottom'>
+			<div className='max-w-screen-xl mx-auto px-4'>
+				<div className='flex items-center justify-between'>
+					{navItems.map(({ path, icon: Icon, label }) => {
+						const isActive =
+							location.pathname === path ||
+							(path === '/profile/me' &&
+								location.pathname.startsWith('/profile/'))
 
-					const handleNavigation = () => {
-						if (item.path) {
-							navigate(item.path)
-						} else {
-							console.warn('User FID is missing, cannot navigate to profile.')
-						}
-					}
-
-					return (
-						<button
-							key={item.path}
-							onClick={handleNavigation}
-							className={cn(
-								'flex flex-col items-center justify-center w-full h-full',
-								isActive ? 'text-purple-500' : 'text-gray-400',
-								item.path === null && 'cursor-not-allowed opacity-50'
-							)}
-							disabled={item.path === null}
-						>
-							<item.icon className='h-6 w-6' />
-							<span className='text-xs mt-1'>{item.label}</span>
-						</button>
-					)
-				})}
+						return (
+							<button
+								key={path}
+								onClick={() => handleNavigation(path)}
+								className={`flex flex-col items-center justify-center flex-1 h-full py-2
+									${
+										isActive
+											? 'text-purple-400'
+											: 'text-gray-400 hover:text-gray-300'
+									} transition-colors`}
+							>
+								<Icon className='h-6 w-6' />
+								<span className='text-xs mt-1'>{label}</span>
+							</button>
+						)
+					})}
+				</div>
 			</div>
-		</nav>
+		</div>
 	)
 }

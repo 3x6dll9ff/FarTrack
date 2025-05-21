@@ -1,87 +1,56 @@
 import { sdk, type FrameContext } from '@farcaster/frame-sdk'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import { clientLog } from './lib/clientLogger'
-import { BrowserRouter } from 'react-router-dom'
+
+// Create a client
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			staleTime: 1000 * 60, // 1 minute
+			cacheTime: 1000 * 60 * 5, // 5 minutes
+			retry: 1,
+			refetchOnWindowFocus: false,
+			refetchOnMount: true,
+			refetchOnReconnect: true,
+		},
+	},
+})
 
 // Initialize the app
 const root = createRoot(document.getElementById('root')!)
 
-// Initialize Farcaster SDK and hide splash screen when app is ready
-const initFarcaster = async () => {
+// Initialize Farcaster SDK and render App with user context
+const initApp = async () => {
+	let userContext: FrameContext['user'] | undefined
+
 	try {
-		await sdk.actions.ready()
-		clientLog('info', 'Farcaster SDK initialized')
+		// Check if we're in a Mini App environment
+		const isInMiniApp = await sdk.isInMiniApp()
+		clientLog('info', `Environment check: ${isInMiniApp ? 'Mini App' : 'Web'}`)
+
+		if (isInMiniApp) {
+			// Initialize SDK and get user context
+			await sdk.actions.ready()
+			userContext = sdk.context.user
+			clientLog('info', 'SDK initialized with user:', userContext)
+		}
 	} catch (error) {
-		clientLog('error', 'Failed to initialize Farcaster SDK:', {
-			error: error.message,
-		})
+		clientLog('error', 'SDK initialization failed:', error)
 	}
-}
 
-// Check if we're in a Farcaster Mini App
-const url = new URL(window.location.href)
-const checkIfMiniAppAndInit = async () => {
-	const isMiniApp = await sdk.isInMiniApp()
-	clientLog('info', `Checked if Mini App environment: ${isMiniApp}`)
-
-	if (isMiniApp) {
-		initFarcaster()
-	} else {
-		clientLog(
-			'info',
-			'Not in Mini App environment according to sdk.isInMiniApp(), skipping SDK init'
-		)
-	}
-}
-
-checkIfMiniAppAndInit()
-
-// Function to render the App, potentially with user context
-const renderApp = (userContext?: FrameContext['user']) => {
+	// Render the app with providers
 	root.render(
-		<BrowserRouter>
-			<App user={userContext} />
-		</BrowserRouter>
+		<QueryClientProvider client={queryClient}>
+			<BrowserRouter>
+				<App user={userContext} />
+			</BrowserRouter>
+		</QueryClientProvider>
 	)
 }
 
-// Initialize Farcaster SDK, hide splash screen, and render App with user context
-const initFarcasterAndRenderApp = async () => {
-	let userContext: FrameContext['user'] | undefined
-	try {
-		const isInMiniApp = await sdk.isInMiniApp()
-		clientLog(
-			'info',
-			`Checked if Mini App environment during main render: ${isInMiniApp}`
-		)
-
-		if (isInMiniApp) {
-			// Wait for SDK ready and get user context
-			await sdk.actions.ready()
-			userContext = sdk.context.user // Get user context
-			clientLog(
-				'info',
-				'Farcaster SDK initialized and ready called. User:',
-				userContext
-			) // Log user context
-		} else {
-			clientLog(
-				'info',
-				'Not in Mini App environment according to sdk.isInMiniApp(), rendering without SDK init'
-			)
-		}
-	} catch (error) {
-		clientLog(
-			'error',
-			'Failed during Farcaster SDK init or context retrieval:',
-			{ error: error.message }
-		)
-	} finally {
-		// Always render the app, even if SDK init fails or not in Mini App
-		renderApp(userContext)
-	}
-}
-
-initFarcasterAndRenderApp() // Start the process
+// Start the app
+initApp()

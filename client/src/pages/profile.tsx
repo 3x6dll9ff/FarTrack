@@ -6,37 +6,63 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
+import { clientLog } from '@/lib/clientLogger'
 import { warpcastClient } from '@/lib/warpcast'
 import { Achievement } from '@shared/schema'
 import { useQuery } from '@tanstack/react-query'
 import {
 	Award,
-	BarChart2,
 	CalendarDays,
 	Check,
 	ExternalLink,
-	Flame,
 	Heart,
 	Link2,
 	Lock,
 	MessageSquare,
 	Repeat,
-	Sparkles,
-	Star,
-	Trophy,
-	Zap,
 } from 'lucide-react'
-import { useParams } from 'wouter'
+import { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 
-export default function Profile() {
+interface ProfileProps {
+	user?: FrameContext['user']
+}
+
+export default function Profile({ user }: ProfileProps) {
 	const { id } = useParams()
-	const userId = id ? parseInt(id) : 1
+	const userId = id === 'me' ? user?.fid : id ? parseInt(id) : undefined
 	const { toast } = useToast()
 
+	clientLog('Profile component mounted', { userId, user })
+
 	// Fetch user data
-	const { data: user, isLoading: userLoading } = useQuery({
-		queryKey: [`/api/users/${userId}`],
-		queryFn: () => fetch(`/api/users/${userId}`).then(res => res.json()),
+	const {
+		data: profileUser,
+		isLoading: userLoading,
+		isError: userError,
+		error: userErrorDetails,
+	} = useQuery({
+		queryKey: ['/api/users', userId],
+		queryFn: async () => {
+			if (!userId) {
+				clientLog('User ID is missing for profile fetch')
+				throw new Error('User ID missing')
+			}
+			try {
+				const response = await fetch(`/api/users/${userId}`)
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`)
+				}
+				const data = await response.json()
+				clientLog('User data fetched successfully', { data })
+				return data
+			} catch (error) {
+				clientLog('Error fetching user data', { error })
+				throw error
+			}
+		},
+		enabled: !!userId,
+		retry: 1,
 	})
 
 	// Функция для синхронизации с Warpcast
@@ -81,17 +107,92 @@ export default function Profile() {
 	}
 
 	// Fetch achievements
-	const { data: achievements, isLoading: achievementsLoading } = useQuery({
+	const {
+		data: achievements,
+		isLoading: achievementsLoading,
+		isError: achievementsError,
+		error: achievementsErrorDetails,
+	} = useQuery({
 		queryKey: [`/api/users/${userId}/achievements`],
-		queryFn: () =>
-			fetch(`/api/users/${userId}/achievements`).then(res => res.json()),
+		queryFn: async () => {
+			try {
+				const response = await fetch(`/api/users/${userId}/achievements`)
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`)
+				}
+				const data = await response.json()
+				clientLog('Achievements fetched successfully', { data })
+				return data
+			} catch (error) {
+				clientLog('Error fetching achievements', { error })
+				throw error
+			}
+		},
+		enabled: !!userId,
+		retry: 1,
 	})
 
 	// Fetch stats
-	const { data: stats, isLoading: statsLoading } = useQuery({
+	const {
+		data: stats,
+		isLoading: statsLoading,
+		isError: statsError,
+		error: statsErrorDetails,
+	} = useQuery({
 		queryKey: [`/api/users/${userId}/stats`],
-		queryFn: () => fetch(`/api/users/${userId}/stats`).then(res => res.json()),
+		queryFn: async () => {
+			try {
+				const response = await fetch(`/api/users/${userId}/stats`)
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`)
+				}
+				const data = await response.json()
+				clientLog('Stats fetched successfully', { data })
+				return data
+			} catch (error) {
+				clientLog('Error fetching stats', { error })
+				throw error
+			}
+		},
+		enabled: !!userId,
+		retry: 1,
 	})
+
+	// Determine if we should show the skeleton
+	const isLoading = userLoading || achievementsLoading || statsLoading
+	const hasError = userError || achievementsError || statsError
+	const hasData = profileUser && achievements && stats
+
+	// Log the state before rendering
+	clientLog('Profile rendering state:', {
+		userId,
+		isLoading,
+		hasError,
+		hasData,
+		userLoading,
+		achievementsLoading,
+		statsLoading,
+		hasProfileUser: !!profileUser,
+		hasAchievements: !!achievements,
+		hasStats: !!stats,
+		userError,
+		achievementsError,
+		statsError,
+		userErrorDetails,
+		achievementsErrorDetails,
+		statsErrorDetails,
+	})
+
+	// Show error toast if any query fails
+	useEffect(() => {
+		if (hasError) {
+			toast({
+				title: 'Error loading profile',
+				description: 'Please try refreshing the page',
+				variant: 'destructive',
+			})
+		}
+	}, [hasError, toast])
 
 	const formatDate = (dateString: string) => {
 		if (!dateString) return ''
@@ -148,510 +249,386 @@ export default function Profile() {
 		</div>
 	)
 
-	return (
-		<AppLayout title='Profile'>
-			<div className='p-4 space-y-6'>
-				{/* Profile Header */}
-				<div className='bg-[#252525] rounded-2xl overflow-hidden border border-[#333333]'>
-					<div className='p-4'>
-						<div className='flex items-center gap-3'>
-							<div className='relative'>
-								{userLoading ? (
-									<Skeleton className='h-14 w-14 rounded-xl' />
-								) : (
-									<img
-										src={user?.profileImage || 'https://github.com/shadcn.png'}
-										alt={user?.displayName || user?.username}
-										className='h-14 w-14 rounded-xl object-cover'
-									/>
-								)}
-							</div>
+	// Render skeleton or content
+	const renderContent = () => {
+		// Show skeleton if loading or no data/error after loading
+		if (isLoading || (!hasData && !isLoading && !hasError)) {
+			clientLog('Rendering Profile Skeleton', { isLoading, hasData, hasError })
+			return (
+				<div className='p-4 space-y-6'>
+					{/* Profile Header Skeleton */}
+					<div className='flex items-center space-x-4'>
+						<Skeleton className='w-24 h-24 rounded-full bg-gray-700' />
+						<div className='flex-1 space-y-3'>
+							<Skeleton className='h-6 w-48 bg-gray-700' />
+							<Skeleton className='h-5 w-32 bg-gray-700' />
+							<Skeleton className='h-4 w-60 bg-gray-700' />
+						</div>
+					</div>
 
-							<div className='flex-1 min-w-0'>
-								<div className='flex items-center justify-between gap-2'>
-									<div className='min-w-0'>
-										<h1 className='text-base font-medium text-white truncate'>
-											{userLoading ? (
-												<Skeleton className='h-5 w-32' />
-											) : (
-												user?.displayName
-											)}
-										</h1>
-										<p className='text-xs text-gray-400 truncate'>
-											{userLoading ? (
-												<Skeleton className='h-3 w-24 mt-1' />
-											) : (
-												`@${user?.username}`
-											)}
-										</p>
+					{/* Stats Skeleton */}
+					<div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+						{[...Array(4)].map((_, i) => (
+							<Card key={i} className='border border-[#333333] bg-[#252525]'>
+								<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+									<Skeleton className='h-5 w-24 bg-gray-700' />
+									<Skeleton className='h-5 w-5 bg-gray-700' />
+								</CardHeader>
+								<CardContent>
+									<Skeleton className='h-8 w-1/2 bg-gray-700' />
+								</CardContent>
+							</Card>
+						))}
+					</div>
+
+					{/* Tabs Skeleton */}
+					<div className='space-y-4'>
+						<Skeleton className='h-10 w-full bg-gray-700' />
+						<Skeleton className='h-40 w-full bg-gray-700' />
+					</div>
+				</div>
+			)
+		} else if (hasError) {
+			clientLog('Rendering Profile Error State', { hasError })
+			return (
+				<div className='flex flex-col items-center justify-center h-full text-red-400'>
+					<p>Error loading profile data.</p>
+					<Button onClick={() => window.location.reload()} className='mt-4'>
+						Retry
+					</Button>
+				</div>
+			)
+		} else if (!profileUser) {
+			clientLog('Rendering No Profile User State')
+			return (
+				<div className='flex flex-col items-center justify-center h-full text-gray-400'>
+					<p>No profile found.</p>
+				</div>
+			)
+		} else {
+			clientLog('Rendering Profile Content', { profileUser })
+			return (
+				<div className='p-4 space-y-6'>
+					{/* Profile Header */}
+					<div className='flex items-center space-x-4'>
+						<img
+							src={profileUser.pfp_url || '/default-avatar.png'}
+							alt={
+								profileUser.display_name ||
+								profileUser.username ||
+								'User Avatar'
+							}
+							className='w-24 h-24 rounded-full object-cover'
+						/>
+						<div className='flex-1 space-y-2'>
+							<h1 className='text-2xl font-bold'>
+								{profileUser.display_name || 'N/A'} (
+								{profileUser.username || 'N/A'})
+							</h1>
+							<p className='text-gray-400 text-sm'>FID: {profileUser.fid}</p>
+							{profileUser.bio && (
+								<p className='text-gray-300 text-sm'>{profileUser.bio}</p>
+							)}
+						</div>
+					</div>
+
+					{/* Follow Stats */}
+					<div className='flex space-x-4 text-sm text-gray-400'>
+						<span>
+							<strong>{profileUser.follower_count || 0}</strong> Followers
+						</span>
+						<span>
+							<strong>{profileUser.following_count || 0}</strong> Following
+						</span>
+					</div>
+
+					{/* Connection/Join Date */}
+					<div className='flex items-center text-sm text-gray-400 space-x-4'>
+						{profileUser.active_on_farcaster && (
+							<div className='flex items-center'>
+								<Check className='h-4 w-4 mr-1 text-green-500' /> Active on
+								Farcaster
+							</div>
+						)}
+						{profileUser.registered_at && (
+							<div className='flex items-center'>
+								<CalendarDays className='h-4 w-4 mr-1' /> Joined
+								{formatDate(profileUser.registered_at)}
+							</div>
+						)}
+					</div>
+
+					{/* Verifications */}
+					{profileUser.verifications &&
+						profileUser.verifications.length > 0 && (
+							<div>
+								<h2 className='text-lg font-semibold mb-2'>Verifications</h2>
+								<div className='flex flex-wrap gap-2'>
+									{profileUser.verifications.map((v, i) => (
+										<Badge
+											key={i}
+											variant='secondary'
+											className='flex items-center'
+										>
+											<Check className='h-3 w-3 mr-1' />
+											{v.replace('eid:eth:', 'eth:').slice(0, 6)}...
+											{v.slice(-4)}
+										</Badge>
+									))}
+								</div>
+							</div>
+						)}
+
+					{/* Connected Addresses */}
+					{profileUser.connected_addresses &&
+						Object.entries(profileUser.connected_addresses).map(
+							([network, addresses]: [string, any]) => (
+								<div key={network}>
+									<h2 className='text-lg font-semibold mb-2 capitalize'>
+										{network} Addresses
+									</h2>
+									<div className='flex flex-wrap gap-2'>
+										{Array.isArray(addresses) &&
+											addresses.map((addr, i) => (
+												<Badge
+													key={i}
+													variant='secondary'
+													className='flex items-center'
+												>
+													<Lock className='h-3 w-3 mr-1' />
+													{`${addr.wallet_address.slice(
+														0,
+														6
+													)}...${addr.wallet_address.slice(-4)}`}
+													{addr.public_key && ( // Optionally show public key if available
+														<span className='ml-2 text-gray-500'>
+															Public Key:
+															{`${addr.public_key.slice(
+																0,
+																6
+															)}...${addr.public_key.slice(-4)}`}
+														</span>
+													)}
+												</Badge>
+											))}
 									</div>
+								</div>
+							)
+						)}
+
+					{/* Farcaster URL */}
+					{profileUser.username && (
+						<div>
+							<h2 className='text-lg font-semibold mb-2'>Links</h2>
+							<div className='flex flex-wrap gap-2'>
+								<a
+									href={`https://warpcast.com/${profileUser.username}`}
+									target='_blank'
+									rel='noopener noreferrer'
+								>
+									<Badge variant='secondary' className='flex items-center'>
+										<ExternalLink className='h-3 w-3 mr-1' />
+										Warpcast Profile
+									</Badge>
+								</a>
+								{/* Display other social URLs if available */}
+								{profileUser.profile_url && (
 									<a
-										href={`https://warpcast.com/${user?.username}`}
+										href={profileUser.profile_url}
 										target='_blank'
 										rel='noopener noreferrer'
-										className='text-gray-400 hover:text-white transition-colors shrink-0'
 									>
-										<ExternalLink className='h-4 w-4' />
+										<Badge variant='secondary' className='flex items-center'>
+											<Link2 className='h-3 w-3 mr-1' />
+											Website
+										</Badge>
 									</a>
-								</div>
+								)}
+							</div>
+						</div>
+					)}
 
-								<div className='flex items-center gap-3 mt-2'>
-									<div className='flex items-center gap-1.5 text-xs text-gray-400'>
-										<CalendarDays className='h-3.5 w-3.5' />
-										<span>
-											{userLoading ? (
-												<Skeleton className='h-3 w-20 inline-block' />
-											) : (
-												formatDate(user?.registrationDate)
-											)}
+					{/* Total Engagements Card */}
+					<Card className='border border-[#333333] bg-[#252525]'>
+						<CardHeader>
+							<CardTitle className='text-lg font-semibold'>
+								Total Engagements
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className='text-2xl font-bold text-purple-400'>
+								{totalEngagements.toLocaleString()}
+							</p>
+						</CardContent>
+					</Card>
+
+					{/* Latest Stats Card */}
+					{latestStat && (
+						<Card className='border border-[#333333] bg-[#252525]'>
+							<CardHeader>
+								<CardTitle className='text-lg font-semibold'>
+									Latest Stats
+								</CardTitle>
+							</CardHeader>
+							<CardContent className='space-y-2'>
+								<p className='flex items-center text-gray-300 text-sm'>
+									<CalendarDays className='h-4 w-4 mr-2' />
+									Data from: {formatDate(latestStat.date)}(
+									{calculateDaysSince(latestStat.date)} days ago)
+								</p>
+								<div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+									<div className='flex items-center text-gray-300 text-sm'>
+										<MessageSquare className='h-4 w-4 mr-2' /> Casts:
+										<span className='ml-1 font-semibold'>
+											{latestStat.casts || 0}
 										</span>
 									</div>
-
-									{!userLoading && (
-										<div className='flex items-center gap-1.5 text-xs text-purple-400'>
-											<Award className='h-3.5 w-3.5' />
-											<span>{user?.totalPoints || 0} points</span>
-										</div>
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Stats Overview */}
-				<div className='flex flex-wrap gap-2'>
-					<div className='flex-1 min-w-[140px] bg-[#252525] rounded-2xl p-3 border border-[#333333]'>
-						<div className='flex items-center gap-2.5'>
-							<div className='w-8 h-8 rounded-lg bg-purple-900/30 text-purple-400 flex items-center justify-center shrink-0'>
-								<Sparkles className='h-4 w-4' />
-							</div>
-							<div className='min-w-0'>
-								<div className='text-base font-medium text-white truncate'>
-									{user?.totalPoints ? Math.floor(user.totalPoints / 100) : 0}
-								</div>
-								<div className='text-xs text-gray-400 truncate'>Level</div>
-							</div>
-						</div>
-					</div>
-
-					<div className='flex-1 min-w-[140px] bg-[#252525] rounded-2xl p-3 border border-[#333333]'>
-						<div className='flex items-center gap-2.5'>
-							<div className='w-8 h-8 rounded-lg bg-purple-900/30 text-purple-400 flex items-center justify-center shrink-0'>
-								<Trophy className='h-4 w-4' />
-							</div>
-							<div className='min-w-0'>
-								<div className='text-base font-medium text-white truncate'>
-									{achievements?.length || 0}
-								</div>
-								<div className='text-xs text-gray-400 truncate'>Badges</div>
-							</div>
-						</div>
-					</div>
-
-					<div className='flex-1 min-w-[140px] bg-[#252525] rounded-2xl p-3 border border-[#333333]'>
-						<div className='flex items-center gap-2.5'>
-							<div className='w-8 h-8 rounded-lg bg-purple-900/30 text-purple-400 flex items-center justify-center shrink-0'>
-								<Flame className='h-4 w-4' />
-							</div>
-							<div className='min-w-0'>
-								<div className='text-base font-medium text-white truncate'>
-									{user?.followerCount || 0}
-								</div>
-								<div className='text-xs text-gray-400 truncate'>Followers</div>
-							</div>
-						</div>
-					</div>
-
-					<div className='flex-1 min-w-[140px] bg-[#252525] rounded-2xl p-3 border border-[#333333]'>
-						<div className='flex items-center gap-2.5'>
-							<div className='w-8 h-8 rounded-lg bg-purple-900/30 text-purple-400 flex items-center justify-center shrink-0'>
-								<Star className='h-4 w-4' />
-							</div>
-							<div className='min-w-0'>
-								<div className='text-base font-medium text-white truncate'>
-									{totalEngagements > 999
-										? Math.floor(totalEngagements / 1000) + 'k'
-										: totalEngagements}
-								</div>
-								<div className='text-xs text-gray-400 truncate'>
-									Interactions
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Points Progress */}
-				<Card className='border border-[#333333] bg-[#252525]'>
-					<CardHeader className='pb-2'>
-						<CardTitle className='text-base font-medium flex items-center text-white'>
-							<Sparkles className='h-4 w-4 mr-1.5 text-purple-400' />
-							Points Level Progress
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className='space-y-2'>
-							<div className='flex justify-between text-sm'>
-								<span className='font-medium text-white'>
-									Level{' '}
-									{user?.totalPoints ? Math.floor(user.totalPoints / 100) : 0}
-								</span>
-								<span className='text-gray-400'>
-									{user?.totalPoints ? user.totalPoints % 100 : 0}/100 to Level{' '}
-									{user?.totalPoints
-										? Math.floor(user.totalPoints / 100) + 1
-										: 1}
-								</span>
-							</div>
-							<Progress
-								value={user?.totalPoints ? user.totalPoints % 100 : 0}
-								className='h-2 bg-[#333333]'
-							/>
-							<p className='text-xs text-gray-400 mt-1'>
-								Earn more points by completing daily challenges and social
-								tasks!
-							</p>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Tabs Section */}
-				<Tabs defaultValue='stats' className='mt-2'>
-					<TabsList className='grid w-full grid-cols-3 bg-[#252525] text-gray-400'>
-						<TabsTrigger
-							value='stats'
-							className='data-[state=active]:bg-[#333333] data-[state=active]:text-white'
-						>
-							Stats
-						</TabsTrigger>
-						<TabsTrigger
-							value='achievements'
-							className='data-[state=active]:bg-[#333333] data-[state=active]:text-white'
-						>
-							Badges
-						</TabsTrigger>
-						<TabsTrigger
-							value='activity'
-							className='data-[state=active]:bg-[#333333] data-[state=active]:text-white'
-						>
-							Activity
-						</TabsTrigger>
-					</TabsList>
-
-					{/* Stats Tab */}
-					<TabsContent value='stats' className='space-y-4 mt-4'>
-						{statsLoading ? (
-							<div className='space-y-4'>
-								{Array(4)
-									.fill(0)
-									.map((_, i) => (
-										<Skeleton key={i} className='h-12 w-full' />
-									))}
-							</div>
-						) : stats && stats.length > 0 ? (
-							<div className='space-y-3'>
-								<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-									<div className='p-3 flex items-center'>
-										<div className='w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3'>
-											<MessageSquare className='h-5 w-5' />
-										</div>
-										<div className='flex-1'>
-											<div className='flex justify-between'>
-												<h3 className='font-semibold text-sm text-white'>
-													Casts
-												</h3>
-												<div className='text-sm font-medium text-white'>
-													{stats.reduce(
-														(sum, stat: any) => sum + (stat.casts || 0),
-														0
-													)}
-													<span className='text-xs text-gray-400 ml-1'>
-														total
-													</span>
-												</div>
-											</div>
-											<Progress
-												value={75}
-												className='h-1.5 mt-1 bg-[#333333]'
-											/>
-											<div className='mt-1 flex justify-between text-xs text-gray-400'>
-												<span>+{latestStat?.casts || 0} today</span>
-												<span>75% of goal</span>
-											</div>
-										</div>
+									<div className='flex items-center text-gray-300 text-sm'>
+										<Heart className='h-4 w-4 mr-2' /> Reactions:
+										<span className='ml-1 font-semibold'>
+											{latestStat.reactions || 0}
+										</span>
 									</div>
-								</Card>
-
-								<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-									<div className='p-3 flex items-center'>
-										<div className='w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3'>
-											<Heart className='h-5 w-5' />
-										</div>
-										<div className='flex-1'>
-											<div className='flex justify-between'>
-												<h3 className='font-semibold text-sm text-white'>
-													Reactions
-												</h3>
-												<div className='text-sm font-medium text-white'>
-													{stats.reduce(
-														(sum, stat: any) => sum + (stat.reactions || 0),
-														0
-													)}
-													<span className='text-xs text-gray-400 ml-1'>
-														total
-													</span>
-												</div>
-											</div>
-											<Progress
-												value={92}
-												className='h-1.5 mt-1 bg-[#333333]'
-											/>
-											<div className='mt-1 flex justify-between text-xs text-gray-400'>
-												<span>+{latestStat?.reactions || 0} today</span>
-												<span>92% of goal</span>
-											</div>
-										</div>
+									<div className='flex items-center text-gray-300 text-sm'>
+										<Repeat className='h-4 w-4 mr-2' /> Recasts:
+										<span className='ml-1 font-semibold'>
+											{latestStat.recasts || 0}
+										</span>
 									</div>
-								</Card>
-
-								<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-									<div className='p-3 flex items-center'>
-										<div className='w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3'>
-											<Repeat className='h-5 w-5' />
-										</div>
-										<div className='flex-1'>
-											<div className='flex justify-between'>
-												<h3 className='font-semibold text-sm text-white'>
-													Recasts
-												</h3>
-												<div className='text-sm font-medium text-white'>
-													{stats.reduce(
-														(sum, stat: any) => sum + (stat.recasts || 0),
-														0
-													)}
-													<span className='text-xs text-gray-400 ml-1'>
-														total
-													</span>
-												</div>
-											</div>
-											<Progress
-												value={45}
-												className='h-1.5 mt-1 bg-[#333333]'
-											/>
-											<div className='mt-1 flex justify-between text-xs text-gray-400'>
-												<span>+{latestStat?.recasts || 0} today</span>
-												<span>45% of goal</span>
-											</div>
-										</div>
+									<div className='flex items-center text-gray-300 text-sm'>
+										<MessageSquare className='h-4 w-4 mr-2' /> Replies:
+										<span className='ml-1 font-semibold'>
+											{latestStat.replies || 0}
+										</span>
 									</div>
-								</Card>
+								</div>
+							</CardContent>
+						</Card>
+					)}
 
-								<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-									<div className='p-3 flex items-center'>
-										<div className='w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3'>
-											<MessageSquare className='h-5 w-5' />
-										</div>
-										<div className='flex-1'>
-											<div className='flex justify-between'>
-												<h3 className='font-semibold text-sm text-white'>
-													Replies
-												</h3>
-												<div className='text-sm font-medium text-white'>
-													{stats.reduce(
-														(sum, stat: any) => sum + (stat.replies || 0),
-														0
-													)}
-													<span className='text-xs text-gray-400 ml-1'>
-														total
-													</span>
+					{/* Achievements Section */}
+					{achievements && achievements.length > 0 && (
+						<div>
+							<h2 className='text-xl font-bold mb-4'>Achievements</h2>
+							<Tabs defaultValue='achieved' className='w-full'>
+								<TabsList className='grid w-full grid-cols-2'>
+									<TabsTrigger value='achieved'>Achieved</TabsTrigger>
+									<TabsTrigger value='all'>All</TabsTrigger>
+								</TabsList>
+								<TabsContent value='achieved' className='mt-4'>
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+										{
+											// Show message if no achievements achieved
+											achievements
+												.filter((a: Achievement) => a.achieved)
+												.map((achievement: Achievement) => (
+													<Card
+														key={achievement.id}
+														className='border border-[#333333] bg-[#252525]'
+													>
+														<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+															<CardTitle className='text-sm font-medium'>
+																{achievement.name}
+															</CardTitle>
+															<Award className='h-4 w-4 text-purple-400' />
+														</CardHeader>
+														<CardContent>
+															<p className='text-xs text-gray-400'>
+																{achievement.description}
+															</p>
+															<div className='flex items-center text-xs text-gray-400 mt-2'>
+																<CalendarDays className='h-3 w-3 mr-1' />
+																Achieved on:
+																{formatDate(achievement.achieved_at)}
+															</div>
+														</CardContent>
+													</Card>
+												)).length === 0 && (
+												<div className='col-span-full text-center text-gray-400'>
+													No achievements achieved yet.
 												</div>
-											</div>
-											<Progress
-												value={62}
-												className='h-1.5 mt-1 bg-[#333333]'
-											/>
-											<div className='mt-1 flex justify-between text-xs text-gray-400'>
-												<span>+{latestStat?.replies || 0} today</span>
-												<span>62% of goal</span>
-											</div>
-										</div>
+											)
+										}
 									</div>
-								</Card>
+								</TabsContent>
+								<TabsContent value='all' className='mt-4'>
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+										{achievements.map((achievement: Achievement) => (
+											<Card
+												key={achievement.id}
+												className={`border ${
+													achievement.achieved
+														? 'border-purple-400'
+														: 'border-[#333333]'
+												}
+															bg-[#252525]
+															${!achievement.achieved && 'opacity-50'}`}
+											>
+												<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+													<CardTitle className='text-sm font-medium'>
+														{achievement.name}
+													</CardTitle>
+													{achievement.achieved ? (
+														<Award className='h-4 w-4 text-purple-400' />
+													) : (
+														<Lock className='h-4 w-4 text-gray-600' />
+													)}
+												</CardHeader>
+												<CardContent>
+													<p className='text-xs text-gray-400'>
+														{achievement.description}
+													</p>
+													{achievement.target_value > 0 && (
+														<div className='mt-2 space-y-1'>
+															<div className='flex justify-between text-xs text-gray-400'>
+																<span>Progress:</span>
+																<span>
+																	{(
+																		achievement.current_value || 0
+																	).toLocaleString()}{' '}
+																	/
+																	{(
+																		achievement.target_value || 0
+																	).toLocaleString()}
+																</span>
+															</div>
+															<Progress
+																value={Math.min(
+																	((achievement.current_value || 0) /
+																		(achievement.target_value || 1)) *
+																		100,
+																	100
+																)}
+																className='w-full h-1.5 bg-gray-700 [&>*]:bg-purple-500'
+															/>
+														</div>
+													)}
+												</CardContent>
+											</Card>
+										))}
+									</div>
+								</TabsContent>
+							</Tabs>
+						</div>
+					)}
+
+					{/* Placeholder for when no achievements or stats are available but not loading/error */}
+					{!isLoading &&
+						!hasError &&
+						(!achievements || achievements.length === 0) &&
+						!stats && (
+							<div className='col-span-full text-center text-gray-400'>
+								No data available for this profile.
 							</div>
-						) : (
-							<Card className='p-6 text-center border border-[#333333] bg-[#252525]'>
-								<BarChart2 className='h-12 w-12 text-gray-400 mx-auto mb-3' />
-								<h3 className='text-lg font-medium mb-2 text-white'>
-									No Stats Available
-								</h3>
-								<p className='text-sm text-gray-400 mb-4'>
-									Stats will appear as you engage with Farcaster.
-								</p>
-							</Card>
 						)}
-					</TabsContent>
+				</div>
+			)
+		}
+	}
 
-					{/* Achievements Tab */}
-					<TabsContent value='achievements' className='space-y-4 mt-4'>
-						<div className='flex justify-between items-center'>
-							<h3 className='text-base font-medium flex items-center text-white'>
-								<Trophy className='h-4 w-4 mr-1.5 text-purple-400' />
-								Your Badges
-								<Badge className='ml-2 text-xs px-2 bg-purple-900 text-purple-300'>
-									{achievements?.length || 0}/15
-								</Badge>
-							</h3>
-						</div>
-
-						{achievementsLoading ? (
-							<div className='space-y-3'>
-								{Array(3)
-									.fill(0)
-									.map((_, i) => (
-										<Skeleton key={i} className='h-16 w-full' />
-									))}
-							</div>
-						) : achievements?.length > 0 ? (
-							<div className='grid grid-cols-2 gap-3'>
-								{achievements.map((achievement: Achievement) => (
-									<Card
-										key={achievement.id}
-										className='overflow-hidden border border-[#333333] bg-[#252525]'
-									>
-										<div className='p-3 flex flex-col items-center text-center'>
-											<div className='w-12 h-12 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mb-2'>
-												<Award className='h-6 w-6' />
-											</div>
-											<h3 className='font-semibold text-white text-sm'>
-												{achievement.name}
-											</h3>
-											<p className='text-xs text-gray-400 mt-1'>
-												{achievement.description}
-											</p>
-											<div className='flex items-center mt-2 text-xs text-purple-300 font-medium'>
-												<Check className='h-3 w-3 mr-1' />
-												<span>
-													Unlocked {formatDate(achievement.unlockedAt)}
-												</span>
-											</div>
-										</div>
-									</Card>
-								))}
-
-								{/* Display placeholder badges */}
-								{[...Array(4 - (achievements.length % 4 || 4))].map((_, i) => (
-									<Card
-										key={`placeholder-${i}`}
-										className='overflow-hidden border border-[#333333] bg-[#252525] opacity-50'
-									>
-										<div className='p-3 flex flex-col items-center text-center'>
-											<div className='w-12 h-12 rounded-full bg-[#333333] text-gray-400 flex items-center justify-center mb-2'>
-												<Lock className='h-6 w-6' />
-											</div>
-											<h3 className='font-semibold text-white text-sm'>
-												Locked Badge
-											</h3>
-											<p className='text-xs text-gray-400 mt-1'>
-												Keep engaging to unlock more badges
-											</p>
-										</div>
-									</Card>
-								))}
-							</div>
-						) : (
-							<Card className='p-6 text-center border border-[#333333] bg-[#252525]'>
-								<Trophy className='h-12 w-12 text-gray-400 mx-auto mb-3' />
-								<h3 className='text-lg font-medium mb-2 text-white'>
-									No Badges Yet
-								</h3>
-								<p className='text-sm text-gray-400 mb-4'>
-									Earn badges by completing challenges and engaging with
-									Farcaster.
-								</p>
-								<Button size='sm' className='bg-purple-600 hover:bg-purple-700'>
-									View Challenges
-								</Button>
-							</Card>
-						)}
-					</TabsContent>
-
-					{/* Activity Tab */}
-					<TabsContent value='activity' className='space-y-4 mt-4'>
-						<div className='flex justify-between items-center'>
-							<h3 className='text-base font-medium flex items-center text-white'>
-								<Zap className='h-4 w-4 mr-1.5 text-purple-400' />
-								Recent Activity
-							</h3>
-						</div>
-
-						<div className='space-y-3'>
-							<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-								<div className='p-3 flex items-start'>
-									<div className='w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3 mt-0.5'>
-										<MessageSquare className='h-4 w-4' />
-									</div>
-									<div className='flex-1'>
-										<p className='text-sm text-white'>
-											<span className='font-medium'>You created a cast</span>
-											<span className='text-gray-400'>
-												{' '}
-												about NFT collections
-											</span>
-										</p>
-										<p className='text-xs text-gray-400 mt-1'>2 hours ago</p>
-									</div>
-									<Badge className='bg-purple-900 text-purple-300'>
-										+10 pts
-									</Badge>
-								</div>
-							</Card>
-
-							<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-								<div className='p-3 flex items-start'>
-									<div className='w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3 mt-0.5'>
-										<Trophy className='h-4 w-4' />
-									</div>
-									<div className='flex-1'>
-										<p className='text-sm text-white'>
-											<span className='font-medium'>You earned a badge</span>
-											<span className='text-gray-400'>
-												{' '}
-												- Consistent Creator
-											</span>
-										</p>
-										<p className='text-xs text-gray-400 mt-1'>Yesterday</p>
-									</div>
-									<Badge className='bg-purple-900 text-purple-300'>
-										+50 pts
-									</Badge>
-								</div>
-							</Card>
-
-							<Card className='overflow-hidden border border-[#333333] bg-[#252525]'>
-								<div className='p-3 flex items-start'>
-									<div className='w-8 h-8 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center mr-3 mt-0.5'>
-										<Link2 className='h-4 w-4' />
-									</div>
-									<div className='flex-1'>
-										<p className='text-sm text-white'>
-											<span className='font-medium'>@janesmith</span>
-											<span className='text-gray-400'>
-												{' '}
-												mentioned you in a cast
-											</span>
-										</p>
-										<p className='text-xs text-gray-400 mt-1'>2 days ago</p>
-									</div>
-									<Badge className='bg-purple-900 text-purple-300'>
-										+5 pts
-									</Badge>
-								</div>
-							</Card>
-						</div>
-					</TabsContent>
-				</Tabs>
-			</div>
+	return (
+		<AppLayout title='Profile' user={user}>
+			{renderContent()}
 		</AppLayout>
 	)
 }

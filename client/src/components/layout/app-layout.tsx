@@ -12,15 +12,25 @@ interface AppLayoutProps {
 export function AppLayout({ children, title, user }: AppLayoutProps) {
 	useEffect(() => {
 		if (title) {
-			document.title = title
+			document.title = `${title} - FarTrack`
+		} else {
+			document.title = 'FarTrack'
 		}
 	}, [title])
 
-	clientLog('info', 'Rendering AppLayout', { user })
+	useEffect(() => {
+		clientLog('info', 'AppLayout rendered', {
+			hasUser: !!user,
+			userId: user?.fid,
+			title,
+		})
+	}, [user, title])
 
 	return (
-		<div className='h-screen w-screen bg-[#1a1a1a] text-white flex flex-col'>
-			<main className='flex-1 h-full w-full pb-24 safe-bottom'>{children}</main>
+		<div className='min-h-screen w-full bg-[#1a1a1a] text-white flex flex-col'>
+			<main className='flex-1 w-full'>
+				<div className='h-full w-full overflow-y-auto'>{children}</div>
+			</main>
 			<BottomNav user={user} />
 		</div>
 	)

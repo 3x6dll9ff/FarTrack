@@ -8,7 +8,6 @@ import { Progress } from '@/components/ui/progress'
 import { clientLog } from '@/lib/clientLogger'
 import { type FrameContext } from '@farcaster/frame-sdk'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import { ArrowUp, Award, Heart, Repeat } from 'lucide-react'
 import {
 	Bar,
@@ -338,10 +337,8 @@ export default function Dashboard({ user }: DashboardProps) {
 						{achievements && achievements.length > 0 ? (
 							<div className='space-y-3'>
 								{achievements.slice(0, 2).map((achievement: any) => (
-									<motion.div
+									<div
 										key={achievement.id}
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
 										className='bg-[#252525] p-3 rounded-lg border border-[#333333] flex items-center hover:bg-[#2a2a2a] cursor-pointer'
 										onClick={() => (window.location.href = '/achievements')}
 									>
@@ -356,7 +353,7 @@ export default function Dashboard({ user }: DashboardProps) {
 												{achievement.description}
 											</p>
 										</div>
-									</motion.div>
+									</div>
 								))}
 							</div>
 						) : (

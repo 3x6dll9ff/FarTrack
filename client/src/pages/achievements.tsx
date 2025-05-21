@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast'
 import { warpcastClient } from '@/lib/warpcast'
 import { Achievement, User } from '@shared/schema'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import {
 	Award,
 	Calendar,
@@ -95,40 +94,34 @@ function AchievementCard({ achievement }: AchievementCardProps) {
 	}
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
-		>
-			<Card className='overflow-hidden border border-[#333333] bg-[#252525] hover:bg-[#2a2a2a] cursor-pointer transition-colors'>
-				<div className='p-3 flex items-center gap-3'>
-					<div className='w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center flex-shrink-0'>
-						{iconMapping[achievement.icon] || <Award className='h-5 w-5' />}
-					</div>
-					<div className='flex-1'>
-						<h3 className='font-semibold text-white text-sm'>
-							{achievement.name}
-						</h3>
-						<p className='text-xs text-gray-400'>{achievement.description}</p>
-						<div className='flex items-center mt-1 text-xs text-gray-400'>
-							<Calendar className='h-3 w-3 mr-1' />
-							<span>{formatDate(achievement.unlockedAt)}</span>
-						</div>
-					</div>
-					<Button
-						variant='ghost'
-						size='sm'
-						className='h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-[#333333]'
-						onClick={e => {
-							e.stopPropagation()
-							handleShare()
-						}}
-					>
-						<Share2 className='h-4 w-4' />
-					</Button>
+		<Card className='overflow-hidden border border-[#333333] bg-[#252525] hover:bg-[#2a2a2a] cursor-pointer transition-colors'>
+			<div className='p-3 flex items-center gap-3'>
+				<div className='w-10 h-10 rounded-full bg-purple-900 text-purple-300 flex items-center justify-center flex-shrink-0'>
+					{iconMapping[achievement.icon] || <Award className='h-5 w-5' />}
 				</div>
-			</Card>
-		</motion.div>
+				<div className='flex-1'>
+					<h3 className='font-semibold text-white text-sm'>
+						{achievement.name}
+					</h3>
+					<p className='text-xs text-gray-400'>{achievement.description}</p>
+					<div className='flex items-center mt-1 text-xs text-gray-400'>
+						<Calendar className='h-3 w-3 mr-1' />
+						<span>{formatDate(achievement.unlockedAt)}</span>
+					</div>
+				</div>
+				<Button
+					variant='ghost'
+					size='sm'
+					className='h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-[#333333]'
+					onClick={e => {
+						e.stopPropagation()
+						handleShare()
+					}}
+				>
+					<Share2 className='h-4 w-4' />
+				</Button>
+			</div>
+		</Card>
 	)
 }
 

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { clientLog } from '@/lib/clientLogger'
+import { sdk } from '@/lib/sdk'
 import { getWarpcastUserProfile } from '@/lib/warpcast'
 import { Achievement } from '@shared/schema'
 import { useQuery } from '@tanstack/react-query'
@@ -32,19 +33,16 @@ export default function Profile({ user }: ProfileProps) {
 	const { id } = useParams()
 	const { toast } = useToast()
 
-	// Log full SDK context
-	clientLog('Full SDK Context:', {
-		user: {
-			fid: user?.fid,
-			username: user?.username,
-			displayName: user?.displayName,
-			pfp: user?.pfp,
-			bio: user?.bio,
-			location: user?.location,
-		},
-		location: user?.location,
-		client: user?.client,
-	})
+	// Get context from SDK
+	useEffect(() => {
+		// Log full SDK context
+		clientLog('Full SDK Context:', {
+			context: sdk.context,
+			user: sdk.context.user,
+			location: sdk.context.location,
+			client: sdk.context.client,
+		})
+	}, [])
 
 	// First fetch Warpcast user data to get the correct FID
 	const {
@@ -52,21 +50,24 @@ export default function Profile({ user }: ProfileProps) {
 		isLoading: warpcastLoading,
 		isError: warpcastError,
 	} = useQuery({
-		queryKey: ['warpcast-user', user?.username],
+		queryKey: ['warpcast-user', sdk.context.user?.username],
 		queryFn: async () => {
-			if (!user?.username) {
+			if (!sdk.context.user?.username) {
 				clientLog('No username available for Warpcast API request')
 				throw new Error('Username missing')
 			}
-			clientLog('Fetching Warpcast data for username:', user.username)
-			const data = await getWarpcastUserProfile(user.username)
+			clientLog(
+				'Fetching Warpcast data for username:',
+				sdk.context.user.username
+			)
+			const data = await getWarpcastUserProfile(sdk.context.user.username)
 			clientLog('Warpcast API Response:', {
-				requestedUsername: user.username,
+				requestedUsername: sdk.context.user.username,
 				response: data,
 			})
 			return data
 		},
-		enabled: !!user?.username,
+		enabled: !!sdk.context.user?.username,
 	})
 
 	// Get the FID from Warpcast response

@@ -1,4 +1,9 @@
 {
+	"accountAssociation": {
+		"header": "eyJmaWQiOjU1NDM2MiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDQwZTdjNDUyQjBiNkY1MjcxZjkxNDI2NUQ0MmNmYmU0NkMyZDlFYjYifQ",
+		"payload": "eyJkb21haW4iOiJmYXJ0cmFjay1wcm9kdWN0aW9uLnVwLnJhaWx3YXkuYXBwIn0",
+		"signature": "MHgzZDE5NjI2MDgzYWExOTQ3NTM5MjBiNjU1MWQ0NGRhNWE0ODA0ZjgxM2YzMmJiN2YwMjE0MjNlNTYwNGU4NjE0MGYyYzcwOThkMjY3NTg0YjRjZGFjYzg5YmRlMjdhMmI0ZTk0ZDYzZDhkMjE4MjA3ZGVhY2FlMGM1NDdiNjlmMjFi"
+	},
 	"frame": {
 		"version": "1",
 		"name": "FarTrack",

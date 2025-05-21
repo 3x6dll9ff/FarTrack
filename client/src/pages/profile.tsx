@@ -36,12 +36,19 @@ export default function Profile({ user }: ProfileProps) {
 	// Get context from SDK
 	useEffect(() => {
 		// Log full SDK context
-		clientLog('Full SDK Context:', {
-			context: sdk.context,
-			user: sdk.context.user,
-			location: sdk.context.location,
-			client: sdk.context.client,
-		})
+		clientLog(
+			'Full SDK Context:',
+			JSON.stringify(
+				{
+					context: sdk.context,
+					user: sdk.context.user,
+					location: sdk.context.location,
+					client: sdk.context.client,
+				},
+				null,
+				2
+			)
+		)
 	}, [])
 
 	// Get user data from SDK context
@@ -62,10 +69,17 @@ export default function Profile({ user }: ProfileProps) {
 			}
 			clientLog('Fetching Warpcast data for username:', username)
 			const data = await getWarpcastUserProfile(username)
-			clientLog('Warpcast API Response:', {
-				requestedUsername: username,
-				response: data,
-			})
+			clientLog(
+				'Warpcast API Response:',
+				JSON.stringify(
+					{
+						requestedUsername: username,
+						response: data,
+					},
+					null,
+					2
+				)
+			)
 			return data
 		},
 		enabled: !!username,
@@ -102,10 +116,16 @@ export default function Profile({ user }: ProfileProps) {
 					return await syncResponse.json()
 				}
 				const data = await response.json()
-				clientLog('User data fetched successfully', { data })
+				clientLog(
+					'User data fetched successfully',
+					JSON.stringify({ data }, null, 2)
+				)
 				return data
 			} catch (error) {
-				clientLog('Error fetching user data', { error })
+				clientLog(
+					'Error fetching user data',
+					JSON.stringify({ error }, null, 2)
+				)
 				throw error
 			}
 		},
@@ -131,10 +151,16 @@ export default function Profile({ user }: ProfileProps) {
 					throw new Error(`HTTP error! status: ${response.status}`)
 				}
 				const data = await response.json()
-				clientLog('Achievements fetched successfully', { data })
+				clientLog(
+					'Achievements fetched successfully',
+					JSON.stringify({ data }, null, 2)
+				)
 				return data
 			} catch (error) {
-				clientLog('Error fetching achievements', { error })
+				clientLog(
+					'Error fetching achievements',
+					JSON.stringify({ error }, null, 2)
+				)
 				throw error
 			}
 		},
@@ -160,10 +186,13 @@ export default function Profile({ user }: ProfileProps) {
 					throw new Error(`HTTP error! status: ${response.status}`)
 				}
 				const data = await response.json()
-				clientLog('Stats fetched successfully', { data })
+				clientLog(
+					'Stats fetched successfully',
+					JSON.stringify({ data }, null, 2)
+				)
 				return data
 			} catch (error) {
-				clientLog('Error fetching stats', { error })
+				clientLog('Error fetching stats', JSON.stringify({ error }, null, 2))
 				throw error
 			}
 		},
@@ -177,24 +206,31 @@ export default function Profile({ user }: ProfileProps) {
 	const hasData = profileUser && achievements && stats
 
 	// Log the state before rendering
-	clientLog('Profile rendering state:', {
-		userFid,
-		isLoading,
-		hasError,
-		hasData,
-		userLoading,
-		achievementsLoading,
-		statsLoading,
-		hasProfileUser: !!profileUser,
-		hasAchievements: !!achievements,
-		hasStats: !!stats,
-		userError,
-		achievementsError,
-		statsError,
-		userErrorDetails,
-		achievementsErrorDetails,
-		statsErrorDetails,
-	})
+	clientLog(
+		'Profile rendering state:',
+		JSON.stringify(
+			{
+				userFid,
+				isLoading,
+				hasError,
+				hasData,
+				userLoading,
+				achievementsLoading,
+				statsLoading,
+				hasProfileUser: !!profileUser,
+				hasAchievements: !!achievements,
+				hasStats: !!stats,
+				userError,
+				achievementsError,
+				statsError,
+				userErrorDetails,
+				achievementsErrorDetails,
+				statsErrorDetails,
+			},
+			null,
+			2
+		)
+	)
 
 	// Show error toast if any query fails
 	useEffect(() => {

@@ -3,12 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Копируем только файлы, необходимые для установки зависимостей
-COPY package.json .npmrc ./
-COPY package-lock.json ./
-
-# Устанавливаем зависимости
-RUN npm install --force
+# Копируем файлы для установки зависимостей
+COPY package.json package-lock.json .npmrc ./
+RUN npm install
 
 # Копируем исходный код
 COPY . .
@@ -21,12 +18,21 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Копируем только необходимые файлы из этапа сборки
+# Копируем только необходимые файлы
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/.npmrc ./
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
+
+# Устанавливаем только production зависимости
+RUN npm ci --only=production
+
+# Устанавливаем переменные окружения
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Открываем порт
+EXPOSE 3000
 
 # Запускаем приложение
-CMD ["npm", "start"] 
+CMD ["node", "dist/server.js"] 

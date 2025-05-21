@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid'
 import path, { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import { createLogger, createServer as createViteServer } from 'vite'
-import viteConfig from '../vite.config'
+import viteConfig from '../vite.config.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -61,7 +61,7 @@ export async function setupVite(app: Express, server: Server) {
 			let template = await fs.promises.readFile(clientTemplate, 'utf-8')
 			template = template.replace(
 				`src="/src/main.tsx"`,
-				`src="/src/main.tsx?v=${nanoid()}"`
+				`src="/src/main.tsx?v=${nanoid()}`
 			)
 			const page = await vite.transformIndexHtml(url, template)
 			res.status(200).set({ 'Content-Type': 'text/html' }).end(page)

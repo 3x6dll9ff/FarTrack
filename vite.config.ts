@@ -52,4 +52,7 @@ export default defineConfig({
 		include: ['@babel/preset-typescript'],
 		exclude: ['lightningcss'],
 	},
+	esbuild: {
+		target: 'node18',
+	},
 })

@@ -46,21 +46,28 @@ export class MemStorage implements IStorage {
 	}
 
 	constructor() {
-		this.initializeData()
+		console.log('[STORAGE] Initializing empty storage')
 	}
 
 	// User methods
 	async getUser(id: number): Promise<User | undefined> {
-		return this.users.get(id)
+		console.log(`[STORAGE] Getting user with ID: ${id}`)
+		const user = this.users.get(id)
+		console.log(`[STORAGE] Found user:`, user)
+		return user
 	}
 
 	async getUserByUsername(username: string): Promise<User | undefined> {
-		return Array.from(this.users.values()).find(
+		console.log(`[STORAGE] Getting user with username: ${username}`)
+		const user = Array.from(this.users.values()).find(
 			user => user.username === username
 		)
+		console.log(`[STORAGE] Found user:`, user)
+		return user
 	}
 
 	async createUser(insertUser: InsertUser): Promise<User> {
+		console.log(`[STORAGE] Creating new user:`, insertUser)
 		const id = this.counters.user++
 		const now = new Date()
 		const user: User = {
@@ -76,6 +83,7 @@ export class MemStorage implements IStorage {
 			totalPoints: 0,
 		}
 		this.users.set(id, user)
+		console.log(`[STORAGE] Created user:`, user)
 		return user
 	}
 
@@ -220,76 +228,6 @@ export class MemStorage implements IStorage {
 		return userStats.sort(
 			(a, b) => b.startDate.getTime() - a.startDate.getTime()
 		)
-	}
-
-	// Initialize with sample data
-	private initializeData() {
-		const sampleUsers: InsertUser[] = [
-			{
-				username: 'alice',
-				displayName: 'Alice Wilson',
-				bio: 'Product Manager | Web3 Enthusiast',
-				profileImage:
-					'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-				followerCount: 1024,
-				followingCount: 512,
-			},
-			{
-				username: 'bob',
-				displayName: 'Bob Johnson',
-				bio: 'Software Engineer | Blockchain Developer',
-				profileImage:
-					'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-				followerCount: 856,
-				followingCount: 302,
-			},
-			{
-				username: 'carol',
-				displayName: 'Carol Martinez',
-				bio: 'Designer & Artist | NFT Creator',
-				profileImage:
-					'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-				followerCount: 1532,
-				followingCount: 218,
-			},
-		]
-
-		const now = new Date()
-		const dayInMs = 24 * 60 * 60 * 1000
-
-		sampleUsers.forEach((user, index) => {
-			const id = this.counters.user++
-			const regDate = new Date(now.getTime() - (90 - index * 15) * dayInMs)
-			const lastActive = new Date(now.getTime() - (index * dayInMs) / 2)
-			const totalPoints = 1000 - index * 150
-
-			this.users.set(id, {
-				id,
-				username: user.username,
-				displayName: user.displayName ?? null,
-				bio: user.bio ?? null,
-				profileImage: user.profileImage ?? null,
-				followerCount: user.followerCount ?? null,
-				followingCount: user.followingCount ?? null,
-				registrationDate: regDate,
-				lastActive: lastActive,
-				totalPoints: totalPoints,
-			})
-
-			// Add sample engagements
-			const engagementTypes = ['cast', 'reply', 'reaction', 'recast']
-			const engagementPoints = { cast: 10, reply: 5, reaction: 2, recast: 8 }
-
-			for (let i = 0; i < 5; i++) {
-				const type =
-					engagementTypes[Math.floor(Math.random() * engagementTypes.length)]
-				this.createEngagement({
-					userId: id,
-					type,
-					points: engagementPoints[type as keyof typeof engagementPoints],
-				})
-			}
-		})
 	}
 }
 

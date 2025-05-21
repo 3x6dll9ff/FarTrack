@@ -205,5 +205,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		}
 	})
 
+	// Add sync endpoint
+	app.post('/api/users/sync', async (req, res) => {
+		try {
+			const { username, userId } = req.body
+			console.log(
+				`[SYNC] Syncing user data for username: ${username}, userId: ${userId}`
+			)
+
+			// Fetch user data from Warpcast
+			const warpcastResponse = await fetch(
+				`https://api.warpcast.com/v2/user/${username}`
+			)
+			if (!warpcastResponse.ok) {
+				throw new Error(
+					`Failed to fetch user from Warpcast: ${warpcastResponse.status}`
+				)
+			}
+
+			const warpcastData = await warpcastResponse.json()
+			console.log(
+				`[SYNC] Warpcast data:`,
+				JSON.stringify(warpcastData, null, 2)
+			)
+
+			if (!warpcastData.result?.user) {
+				throw new Error('No user data in Warpcast response')
+			}
+
+			const warpcastUser = warpcastData.result.user
+
+			// Create or update user in our storage
+			const userData = {
+				username: warpcastUser.username,
+				displayName: warpcastUser.displayName,
+				bio: warpcastUser.bio,
+				profileImage: warpcastUser.pfp,
+				followerCount: warpcastUser.followerCount,
+				followingCount: warpcastUser.followingCount,
+			}
+
+			let user
+			if (userId) {
+				console.log(`[SYNC] Updating existing user with ID: ${userId}`)
+				user = await storage.updateUser(userId, userData)
+			} else {
+				console.log(`[SYNC] Creating new user`)
+				user = await storage.createUser(userData)
+			}
+
+			if (!user) {
+				throw new Error('Failed to create/update user')
+			}
+
+			console.log(`[SYNC] User synced successfully:`, user)
+			res.json(user)
+		} catch (error) {
+			console.error('[SYNC] Error:', error)
+			res.status(500).json({ error: 'Failed to sync user data' })
+		}
+	})
+
 	return createServer(app)
 }

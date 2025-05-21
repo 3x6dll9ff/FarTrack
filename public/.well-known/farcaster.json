@@ -1,0 +1,17 @@
+{
+	"frame": {
+		"version": "1",
+		"name": "FarTrack",
+		"iconUrl": "https://fartrack-production.up.railway.app/logo.png",
+		"homeUrl": "https://fartrack-production.up.railway.app",
+		"splashImageUrl": "https://fartrack-production.up.railway.app/logo.png",
+		"splashBackgroundColor": "#000000",
+		"subtitle": "Farcaster Analytics Platform",
+		"description": "Track your Farcaster engagement, achievements, and analytics in one place.",
+		"primaryCategory": "social",
+		"tags": ["analytics", "farcaster", "social", "tracking", "achievements"],
+		"ogTitle": "FarTrack - Farcaster Analytics",
+		"ogDescription": "Track your Farcaster engagement, achievements, and analytics in one place.",
+		"ogImageUrl": "https://fartrack-production.up.railway.app/og.png"
+	}
+}

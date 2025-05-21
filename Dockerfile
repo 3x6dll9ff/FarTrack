@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем файлы для установки зависимостей
@@ -25,6 +26,9 @@ FROM node:20-slim
 
 WORKDIR /app
 
+# Устанавливаем curl для health check
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Копируем только необходимые файлы
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
@@ -37,9 +41,14 @@ RUN npm ci --only=production --ignore-scripts
 # Устанавливаем переменные окружения
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV RAILWAY_HEALTHCHECK_PATH=/health
 
 # Открываем порт
 EXPOSE 3000
+
+# Добавляем health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Запускаем приложение
 CMD ["node", "dist/server.js"] 

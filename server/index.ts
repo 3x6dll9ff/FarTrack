@@ -1,8 +1,46 @@
 import express, { NextFunction, type Request, Response } from 'express'
+import session from 'express-session'
+import { createServer } from 'http'
+import MemoryStore from 'memorystore'
+import passport from 'passport'
+import { WebSocketServer } from 'ws'
 import { registerRoutes } from './routes'
 import { log, serveStatic, setupVite } from './vite'
+import { setupWebSocket } from './websocket'
 
 const app = express()
+const server = createServer(app)
+const wss = new WebSocketServer({ server })
+
+// Настройка сессий
+const MemoryStoreSession = MemoryStore(session)
+app.use(
+	session({
+		secret: process.env.SESSION_SECRET || 'your-secret-key',
+		resave: false,
+		saveUninitialized: false,
+		store: new MemoryStoreSession({
+			checkPeriod: 86400000, // 24 часа
+		}),
+		cookie: {
+			secure: process.env.NODE_ENV === 'production',
+			maxAge: 24 * 60 * 60 * 1000, // 24 часа
+		},
+	})
+)
+
+// Настройка Passport
+app.use(passport.initialize())
+app.use(passport.session())
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+	res.status(200).json({ status: 'ok' })
+})
+
+// Настройка WebSocket
+setupWebSocket(wss)
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 

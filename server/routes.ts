@@ -1,87 +1,76 @@
+import type { Express, Response } from 'express'
+import { createServer, type Server } from 'http'
+import { ZodError } from 'zod'
 import {
 	insertAchievementSchema,
 	insertEngagementSchema,
 	insertStatSchema,
 	insertUserSchema,
-} from '@shared/schema'
-import type { Express, Response } from 'express'
-import { createServer, type Server } from 'http'
-import { ZodError } from 'zod'
-import { storage } from './storage'
+} from '../shared/schema.js'
+import { storage } from './storage.js'
+
+// Error handler for validation errors
+const handleValidationError = (err: unknown, res: Response) => {
+	if (err instanceof ZodError) {
+		return res.status(400).json({ message: err.message })
+	}
+	console.error(err)
+	return res.status(500).json({ message: 'Internal server error' })
+}
+
+// Helper function to parse and validate user ID
+const parseUserId = (id: string): number | null => {
+	const parsedId = parseInt(id)
+	return isNaN(parsedId) ? null : parsedId
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
-	// Error handler for validation errors
-	const handleValidationError = (err: unknown, res: Response) => {
-		if (err instanceof ZodError) {
-			return res.status(400).json({ message: err.message })
-		}
-
-		console.error(err)
-		return res.status(500).json({ message: 'Internal server error' })
-	}
-
 	// User routes
 	app.get('/api/users', async (_req, res) => {
 		try {
-			const users = await storage.listUsers()
-			res.json(users)
+			res.json(await storage.listUsers())
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve users' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.get('/api/users/top', async (req, res) => {
 		try {
-			const limit = req.query.limit ? parseInt(req.query.limit as string) : 5
-			const users = await storage.getTopUsers(limit)
-			res.json(users)
+			const limit = parseInt(req.query.limit as string) || 5
+			res.json(await storage.getTopUsers(limit))
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve top users' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.get('/api/users/:id', async (req, res) => {
 		try {
-			const id = parseInt(req.params.id)
-			if (isNaN(id)) {
-				return res.status(400).json({ message: 'Invalid user ID' })
-			}
+			const id = parseUserId(req.params.id)
+			if (!id) return res.status(400).json({ message: 'Invalid user ID' })
 
 			const user = await storage.getUser(id)
-			if (!user) {
-				return res.status(404).json({ message: 'User not found' })
-			}
+			if (!user) return res.status(404).json({ message: 'User not found' })
 
 			res.json(user)
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve user' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.get('/api/users/username/:username', async (req, res) => {
 		try {
-			const username = req.params.username
-			const user = await storage.getUserByUsername(username)
-
-			if (!user) {
-				return res.status(404).json({ message: 'User not found' })
-			}
-
+			const user = await storage.getUserByUsername(req.params.username)
+			if (!user) return res.status(404).json({ message: 'User not found' })
 			res.json(user)
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve user' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.post('/api/users', async (req, res) => {
 		try {
 			const userData = insertUserSchema.parse(req.body)
-			const user = await storage.createUser(userData)
-			res.status(201).json(user)
+			res.status(201).json(await storage.createUser(userData))
 		} catch (err) {
 			handleValidationError(err, res)
 		}
@@ -89,56 +78,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 	app.patch('/api/users/:id', async (req, res) => {
 		try {
-			const id = parseInt(req.params.id)
-			if (isNaN(id)) {
-				return res.status(400).json({ message: 'Invalid user ID' })
-			}
+			const id = parseUserId(req.params.id)
+			if (!id) return res.status(400).json({ message: 'Invalid user ID' })
 
 			const user = await storage.updateUser(id, req.body)
-			if (!user) {
-				return res.status(404).json({ message: 'User not found' })
-			}
+			if (!user) return res.status(404).json({ message: 'User not found' })
 
 			res.json(user)
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to update user' })
+			handleValidationError(err, res)
 		}
 	})
 
 	// Engagement routes
 	app.get('/api/engagements/recent', async (req, res) => {
 		try {
-			const limit = req.query.limit ? parseInt(req.query.limit as string) : 20
-			const engagements = await storage.getRecentEngagements(limit)
-			res.json(engagements)
+			const limit = parseInt(req.query.limit as string) || 20
+			res.json(await storage.getRecentEngagements(limit))
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve engagements' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.get('/api/users/:userId/engagements', async (req, res) => {
 		try {
-			const userId = parseInt(req.params.userId)
-			if (isNaN(userId)) {
-				return res.status(400).json({ message: 'Invalid user ID' })
-			}
+			const userId = parseUserId(req.params.userId)
+			if (!userId) return res.status(400).json({ message: 'Invalid user ID' })
 
-			const limit = req.query.limit ? parseInt(req.query.limit as string) : 20
-			const engagements = await storage.getUserEngagements(userId, limit)
-			res.json(engagements)
+			const limit = parseInt(req.query.limit as string) || 20
+			res.json(await storage.getUserEngagements(userId, limit))
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve user engagements' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.post('/api/engagements', async (req, res) => {
 		try {
 			const engagementData = insertEngagementSchema.parse(req.body)
-			const engagement = await storage.createEngagement(engagementData)
-			res.status(201).json(engagement)
+			res.status(201).json(await storage.createEngagement(engagementData))
 		} catch (err) {
 			handleValidationError(err, res)
 		}
@@ -147,24 +124,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 	// Achievement routes
 	app.get('/api/users/:userId/achievements', async (req, res) => {
 		try {
-			const userId = parseInt(req.params.userId)
-			if (isNaN(userId)) {
-				return res.status(400).json({ message: 'Invalid user ID' })
-			}
+			const userId = parseUserId(req.params.userId)
+			if (!userId) return res.status(400).json({ message: 'Invalid user ID' })
 
-			const achievements = await storage.getUserAchievements(userId)
-			res.json(achievements)
+			res.json(await storage.getUserAchievements(userId))
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve user achievements' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.post('/api/achievements', async (req, res) => {
 		try {
 			const achievementData = insertAchievementSchema.parse(req.body)
-			const achievement = await storage.createAchievement(achievementData)
-			res.status(201).json(achievement)
+			res.status(201).json(await storage.createAchievement(achievementData))
 		} catch (err) {
 			handleValidationError(err, res)
 		}
@@ -173,30 +145,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 	// Stats routes
 	app.get('/api/users/:userId/stats', async (req, res) => {
 		try {
-			const userId = parseInt(req.params.userId)
-			if (isNaN(userId)) {
-				return res.status(400).json({ message: 'Invalid user ID' })
-			}
+			const userId = parseUserId(req.params.userId)
+			if (!userId) return res.status(400).json({ message: 'Invalid user ID' })
 
 			const period = req.query.period as string | undefined
-			const stats = await storage.getUserStats(userId, period)
-			res.json(stats)
+			res.json(await storage.getUserStats(userId, period))
 		} catch (err) {
-			console.error(err)
-			res.status(500).json({ message: 'Failed to retrieve user stats' })
+			handleValidationError(err, res)
 		}
 	})
 
 	app.post('/api/stats', async (req, res) => {
 		try {
 			const statData = insertStatSchema.parse(req.body)
-			const stat = await storage.createStat(statData)
-			res.status(201).json(stat)
+			res.status(201).json(await storage.createStat(statData))
 		} catch (err) {
 			handleValidationError(err, res)
 		}
 	})
 
-	const httpServer = createServer(app)
-	return httpServer
+	return createServer(app)
 }

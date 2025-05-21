@@ -3,10 +3,24 @@ import session from 'express-session'
 import { createServer } from 'http'
 import MemoryStore from 'memorystore'
 import passport from 'passport'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { WebSocketServer } from 'ws'
-import { registerRoutes } from './routes'
-import { log, serveStatic, setupVite } from './vite'
-import { setupWebSocket } from './websocket'
+import { registerRoutes } from './routes.js'
+import { setupWebSocket } from './websocket.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+function log(message: string, source = 'express') {
+	const formattedTime = new Date().toLocaleTimeString('en-US', {
+		hour: 'numeric',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: true,
+	})
+	console.log(`${formattedTime} [${source}] ${message}`)
+}
 
 const app = express()
 const server = createServer(app)
@@ -34,7 +48,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 
 // Health check endpoint
-app.get('/health', (_req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
 	res.status(200).send('ok')
 })
 
@@ -44,15 +58,16 @@ setupWebSocket(wss)
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-app.use((req, res, next) => {
+// Логирование запросов
+app.use((req: Request, res: Response, next: NextFunction) => {
 	const start = Date.now()
 	const path = req.path
 	let capturedJsonResponse: Record<string, any> | undefined = undefined
 
 	const originalResJson = res.json
-	res.json = function (bodyJson, ...args) {
-		capturedJsonResponse = bodyJson
-		return originalResJson.apply(res, [bodyJson, ...args])
+	res.json = function (body: any) {
+		capturedJsonResponse = body
+		return originalResJson.call(res, body)
 	}
 
 	res.on('finish', () => {
@@ -73,28 +88,38 @@ app.use((req, res, next) => {
 
 	next()
 })
+
+// Обработка ошибок
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+	const status = err.status || err.statusCode || 500
+	const message = err.message || 'Internal Server Error'
+	res.status(status).json({ message })
+	log(`Error: ${message}`, 'error')
+})
 ;(async () => {
 	try {
-		const server = await registerRoutes(app)
-
-		app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-			const status = err.status || err.statusCode || 500
-			const message = err.message || 'Internal Server Error'
-
-			res.status(status).json({ message })
-			log(`Error: ${message}`, 'error')
-		})
-
-		// Настройка Vite в режиме разработки
-		if (process.env.NODE_ENV === 'development') {
-			await setupVite(app, server)
-		} else {
-			serveStatic(app)
-		}
+		// Регистрируем API маршруты
+		await registerRoutes(app)
 
 		const port = process.env.PORT || 3000
-		server.listen(port, '0.0.0.0', () => {
+
+		// Настраиваем статические файлы
+		if (process.env.NODE_ENV === 'production') {
+			const publicPath = path.resolve(__dirname, '..', 'public')
+			log(`Serving static files from: ${publicPath}`)
+			app.use(express.static(publicPath))
+
+			// Все остальные GET запросы отправляют index.html
+			app.get('*', (_req, res) => {
+				res.sendFile(path.join(publicPath, 'index.html'))
+			})
+		}
+
+		server.listen(port, () => {
 			log(`Server is running on port ${port}`)
+			if (process.env.NODE_ENV === 'development') {
+				log(`Frontend is available at http://localhost:${port}`)
+			}
 		})
 	} catch (error) {
 		log(`Failed to start server: ${error}`, 'error')

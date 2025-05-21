@@ -1,28 +1,20 @@
 import react from '@vitejs/plugin-react'
-import { dirname, resolve } from 'path'
-import { fileURLToPath } from 'url'
+import { resolve } from 'path'
 import { defineConfig } from 'vite'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 export default defineConfig({
 	plugins: [react()],
-	resolve: {
-		alias: {
-			'@': resolve(__dirname, 'client/src'),
-			'@shared': resolve(__dirname, 'shared'),
-			'@assets': resolve(__dirname, 'attached_assets'),
-		},
-	},
 	root: resolve(__dirname, 'client'),
 	build: {
-		outDir: 'dist/public',
+		outDir: resolve(__dirname, 'dist/public'),
 		emptyOutDir: true,
 		rollupOptions: {
+			input: {
+				main: resolve(__dirname, 'client/index.html'),
+			},
 			output: {
 				manualChunks: {
-					vendor: ['react', 'react-dom'],
+					vendor: ['react', 'react-dom', 'wouter'],
 					ui: [
 						'@radix-ui/react-avatar',
 						'@radix-ui/react-dialog',
@@ -35,24 +27,28 @@ export default defineConfig({
 						'@radix-ui/react-toast',
 						'@radix-ui/react-tooltip',
 					],
-					charts: ['recharts'],
-					forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-					utils: [
-						'date-fns',
-						'clsx',
-						'tailwind-merge',
-						'class-variance-authority',
-					],
 				},
 			},
 		},
 		chunkSizeWarningLimit: 1000,
 	},
-	optimizeDeps: {
-		include: ['@babel/preset-typescript'],
-		exclude: ['lightningcss'],
+	resolve: {
+		alias: {
+			'@': resolve(__dirname, './client/src'),
+			'@shared': resolve(__dirname, './shared'),
+		},
 	},
-	esbuild: {
-		target: 'node18',
+	server: {
+		port: 5173,
+		proxy: {
+			'/api': {
+				target: 'http://localhost:3000',
+				changeOrigin: true,
+			},
+			'/ws': {
+				target: 'ws://localhost:3000',
+				ws: true,
+			},
+		},
 	},
 })

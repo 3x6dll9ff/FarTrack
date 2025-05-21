@@ -1,11 +1,20 @@
-import { WebSocketServer } from 'ws'
-import { log } from './vite'
+import { WebSocket, WebSocketServer } from 'ws'
+
+function log(message: string, source = 'websocket') {
+	const formattedTime = new Date().toLocaleTimeString('en-US', {
+		hour: 'numeric',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: true,
+	})
+	console.log(`${formattedTime} [${source}] ${message}`)
+}
 
 export function setupWebSocket(wss: WebSocketServer) {
-	wss.on('connection', ws => {
-		log('New WebSocket connection established')
+	wss.on('connection', (ws: WebSocket) => {
+		log('New WebSocket connection')
 
-		ws.on('message', message => {
+		ws.on('message', (message: Buffer) => {
 			try {
 				const data = JSON.parse(message.toString())
 				log(`Received message: ${JSON.stringify(data)}`)
@@ -13,7 +22,7 @@ export function setupWebSocket(wss: WebSocketServer) {
 				// Здесь можно добавить обработку сообщений
 				ws.send(JSON.stringify({ type: 'ack', data: 'Message received' }))
 			} catch (error) {
-				log(`Error processing message: ${error}`)
+				log(`Error parsing message: ${error}`, 'error')
 				ws.send(
 					JSON.stringify({ type: 'error', message: 'Invalid message format' })
 				)
@@ -21,11 +30,11 @@ export function setupWebSocket(wss: WebSocketServer) {
 		})
 
 		ws.on('close', () => {
-			log('WebSocket connection closed')
+			log('Client disconnected')
 		})
 
-		ws.on('error', error => {
-			log(`WebSocket error: ${error}`)
+		ws.on('error', (error: Error) => {
+			log(`WebSocket error: ${error}`, 'error')
 		})
 
 		// Отправляем приветственное сообщение
@@ -37,7 +46,7 @@ export function setupWebSocket(wss: WebSocketServer) {
 		)
 	})
 
-	wss.on('error', error => {
+	wss.on('error', (error: Error) => {
 		log(`WebSocket server error: ${error}`)
 	})
 

@@ -1,4 +1,3 @@
-import { verifyFrameRequest } from '@farcaster/frames-js'
 import { Router } from 'express'
 
 const router = Router()
@@ -8,14 +7,9 @@ router.post('/frame', async (req, res) => {
 	try {
 		const { untrustedData, trustedData } = req.body
 
-		// Verify the request is from Warpcast
-		const isValid = await verifyFrameRequest({
-			trustedData,
-			untrustedData,
-		})
-
-		if (!isValid) {
-			return res.status(401).json({ error: 'Unauthorized' })
+		// Basic validation
+		if (!untrustedData || !trustedData) {
+			return res.status(400).json({ error: 'Invalid request data' })
 		}
 
 		// Process the frame interaction
@@ -32,7 +26,7 @@ router.post('/frame', async (req, res) => {
 			default:
 				return res.json({
 					type: 'message',
-					message: 'Welcome to Executive Onboard!',
+					message: 'Welcome to FarTrack!',
 				})
 		}
 	} catch (error) {

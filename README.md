@@ -1,16 +1,13 @@
 # Executive Onboard
 
-Приложение для отслеживания и управления достижениями в Farcaster.
+Executive Onboard - это веб-приложение для отслеживания прогресса и управления задачами.
 
 ## Технологии
 
-- React 18
-- TypeScript
+- React + TypeScript
 - Vite
 - Tailwind CSS
 - Radix UI
-- React Query
-- Framer Motion
 - Express.js
 - Drizzle ORM
 - Neon Database
@@ -30,43 +27,51 @@ cd executive-onboard
 npm install
 ```
 
-3. Создайте файл `.env` в корневой директории:
+3. Создайте файл `.env` в корневой директории и добавьте необходимые переменные окружения:
 
 ```env
-VITE_WARPCAST_API_KEY=your_api_key_here
+DATABASE_URL=your_database_url
+SESSION_SECRET=your_session_secret
 ```
 
-4. Запустите сервер разработки:
+4. Запустите миграции базы данных:
+
+```bash
+npm run db:push
+```
+
+## Разработка
+
+Для запуска в режиме разработки:
 
 ```bash
 npm run dev
 ```
 
+Приложение будет доступно по адресу `http://localhost:5173`
+
+## Сборка
+
+Для сборки проекта:
+
+```bash
+npm run build
+```
+
+## Деплой
+
+Проект настроен для деплоя на Railway. При пуше в ветку `main` происходит автоматический деплой.
+
 ## Структура проекта
 
 ```
-client/
-  ├── src/
-  │   ├── api/        # API клиенты
-  │   ├── components/ # React компоненты
-  │   ├── hooks/      # React хуки
-  │   ├── lib/        # Утилиты и конфигурация
-  │   └── pages/      # Страницы приложения
-  └── index.html
-server/
-  ├── index.ts        # Точка входа сервера
-  └── routes/         # API маршруты
-shared/
-  └── schema/         # Общие типы и схемы
+├── client/             # Клиентская часть (React)
+│   ├── src/           # Исходный код
+│   └── public/        # Статические файлы
+├── server/            # Серверная часть (Express)
+├── shared/            # Общие типы и утилиты
+└── dist/              # Собранные файлы
 ```
-
-## Разработка
-
-- `npm run dev` - запуск сервера разработки
-- `npm run build` - сборка проекта
-- `npm run start` - запуск production сборки
-- `npm run check` - проверка типов TypeScript
-- `npm run db:push` - обновление схемы базы данных
 
 ## Лицензия
 

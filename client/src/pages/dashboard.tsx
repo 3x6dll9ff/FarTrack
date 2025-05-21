@@ -128,6 +128,7 @@ export default function Dashboard({ user }: DashboardProps) {
 		},
 	})
 
+	// Log the state after fetching
 	clientLog('info', 'useQuery data:', { userData, statsData, achievements })
 
 	// Handle loading state
@@ -150,6 +151,22 @@ export default function Dashboard({ user }: DashboardProps) {
 		return (
 			<AppLayout title='Error'>
 				<div>Error loading dashboard data.</div>
+			</AppLayout>
+		)
+	}
+
+	// Check if data is available after loading
+	const dataLoadedAndEmpty =
+		!userData && !statsData?.length && !achievements?.length
+
+	if (dataLoadedAndEmpty) {
+		clientLog('info', 'Data loaded, but empty')
+		return (
+			<AppLayout title='FarTrack'>
+				<div className='flex flex-col items-center justify-center h-full text-gray-400'>
+					<p className='text-lg'>No data available.</p>
+					<p className='text-sm'>Try again later or check your connection.</p>
+				</div>
 			</AppLayout>
 		)
 	}

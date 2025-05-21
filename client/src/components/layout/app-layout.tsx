@@ -17,8 +17,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
 	clientLog('info', 'Rendering AppLayout')
 
 	return (
-		<div className='min-h-screen bg-[#1a1a1a] text-white flex flex-col'>
-			<main className='flex-1 pb-20 safe-bottom'>{children}</main>
+		<div className='h-screen w-screen bg-[#1a1a1a] text-white flex flex-col'>
+			<main className='flex-1 h-full w-full pb-20 safe-bottom'>{children}</main>
 			<BottomNav />
 		</div>
 	)

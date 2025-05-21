@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { clientLog } from './lib/clientLogger'
+import { BrowserRouter } from 'react-router-dom'
 
 // Initialize the app
 const root = createRoot(document.getElementById('root')!)
@@ -39,7 +40,11 @@ checkIfMiniAppAndInit()
 
 // Function to render the App, potentially with user context
 const renderApp = (userContext?: FrameContext['user']) => {
-	root.render(<App user={userContext} />)
+	root.render(
+		<BrowserRouter>
+			<App user={userContext} />
+		</BrowserRouter>
+	)
 }
 
 // Initialize Farcaster SDK, hide splash screen, and render App with user context

@@ -44,51 +44,49 @@ export default function Profile({ user }: ProfileProps) {
 		})
 	}, [])
 
+	// Get user data from SDK context
+	const userFid = sdk.context.user?.fid
+	const username = sdk.context.user?.username
+
 	// First fetch Warpcast user data to get the correct FID
 	const {
 		data: warpcastUser,
 		isLoading: warpcastLoading,
 		isError: warpcastError,
 	} = useQuery({
-		queryKey: ['warpcast-user', sdk.context.user?.username],
+		queryKey: ['warpcast-user', username],
 		queryFn: async () => {
-			if (!sdk.context.user?.username) {
+			if (!username) {
 				clientLog('No username available for Warpcast API request')
 				throw new Error('Username missing')
 			}
-			clientLog(
-				'Fetching Warpcast data for username:',
-				sdk.context.user.username
-			)
-			const data = await getWarpcastUserProfile(sdk.context.user.username)
+			clientLog('Fetching Warpcast data for username:', username)
+			const data = await getWarpcastUserProfile(username)
 			clientLog('Warpcast API Response:', {
-				requestedUsername: sdk.context.user.username,
+				requestedUsername: username,
 				response: data,
 			})
 			return data
 		},
-		enabled: !!sdk.context.user?.username,
+		enabled: !!username,
 	})
 
-	// Get the FID from Warpcast response
-	const userId = warpcastUser?.fid
-
-	// Fetch user data from our API using the FID from Warpcast
+	// Fetch user data from our API using the FID from SDK context
 	const {
 		data: profileUser,
 		isLoading: userLoading,
 		isError: userError,
 		error: userErrorDetails,
 	} = useQuery({
-		queryKey: ['/api/users', userId],
+		queryKey: ['/api/users', userFid],
 		queryFn: async () => {
-			if (!userId) {
+			if (!userFid) {
 				clientLog('No FID available for profile fetch')
 				throw new Error('FID missing')
 			}
 			try {
 				// First try to get user by FID
-				const response = await fetch(`/api/users/fid/${userId}`)
+				const response = await fetch(`/api/users/fid/${userFid}`)
 				if (!response.ok) {
 					// If not found, try to sync with Warpcast
 					const syncResponse = await fetch('/api/users/sync', {
@@ -96,7 +94,7 @@ export default function Profile({ user }: ProfileProps) {
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify({ fid: userId }),
+						body: JSON.stringify({ fid: userFid }),
 					})
 					if (!syncResponse.ok) {
 						throw new Error(`HTTP error! status: ${syncResponse.status}`)
@@ -111,24 +109,24 @@ export default function Profile({ user }: ProfileProps) {
 				throw error
 			}
 		},
-		enabled: !!userId,
+		enabled: !!userFid,
 		retry: 1,
 	})
 
-	// Fetch achievements using the FID from Warpcast
+	// Fetch achievements using the FID from SDK context
 	const {
 		data: achievements,
 		isLoading: achievementsLoading,
 		isError: achievementsError,
 		error: achievementsErrorDetails,
 	} = useQuery({
-		queryKey: [`/api/users/${userId}/achievements`],
+		queryKey: [`/api/users/${userFid}/achievements`],
 		queryFn: async () => {
-			if (!userId) {
+			if (!userFid) {
 				throw new Error('FID missing')
 			}
 			try {
-				const response = await fetch(`/api/users/fid/${userId}/achievements`)
+				const response = await fetch(`/api/users/fid/${userFid}/achievements`)
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`)
 				}
@@ -140,24 +138,24 @@ export default function Profile({ user }: ProfileProps) {
 				throw error
 			}
 		},
-		enabled: !!userId,
+		enabled: !!userFid,
 		retry: 1,
 	})
 
-	// Fetch stats using the FID from Warpcast
+	// Fetch stats using the FID from SDK context
 	const {
 		data: stats,
 		isLoading: statsLoading,
 		isError: statsError,
 		error: statsErrorDetails,
 	} = useQuery({
-		queryKey: [`/api/users/${userId}/stats`],
+		queryKey: [`/api/users/${userFid}/stats`],
 		queryFn: async () => {
-			if (!userId) {
+			if (!userFid) {
 				throw new Error('FID missing')
 			}
 			try {
-				const response = await fetch(`/api/users/fid/${userId}/stats`)
+				const response = await fetch(`/api/users/fid/${userFid}/stats`)
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`)
 				}
@@ -169,7 +167,7 @@ export default function Profile({ user }: ProfileProps) {
 				throw error
 			}
 		},
-		enabled: !!userId,
+		enabled: !!userFid,
 		retry: 1,
 	})
 
@@ -180,7 +178,7 @@ export default function Profile({ user }: ProfileProps) {
 
 	// Log the state before rendering
 	clientLog('Profile rendering state:', {
-		userId,
+		userFid,
 		isLoading,
 		hasError,
 		hasData,

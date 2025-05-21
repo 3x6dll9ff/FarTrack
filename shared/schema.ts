@@ -12,6 +12,7 @@ export const users = pgTable('users', {
 	registrationDate: timestamp('registration_date').defaultNow(),
 	lastActive: timestamp('last_active').defaultNow(),
 	totalPoints: integer('total_points').default(0),
+	fid: integer('fid').notNull(),
 })
 
 export const engagements = pgTable('engagements', {
@@ -56,6 +57,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 	totalPoints: true,
 	registrationDate: true,
 	lastActive: true,
+	fid: true,
 })
 
 export const insertEngagementSchema = createInsertSchema(engagements).omit({
@@ -76,6 +78,7 @@ export const insertStatSchema = createInsertSchema(stats).omit({
 export type User = typeof users.$inferSelect
 export type InsertUser = {
 	username: string
+	fid: number
 	displayName?: string | null
 	bio?: string | null
 	profileImage?: string | null

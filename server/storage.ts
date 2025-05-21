@@ -12,6 +12,7 @@ import {
 export interface IStorage {
 	// User methods
 	getUser(id: number): Promise<User | undefined>
+	getUserByFid(fid: number): Promise<User | undefined>
 	getUserByUsername(username: string): Promise<User | undefined>
 	createUser(user: InsertUser): Promise<User>
 	updateUser(id: number, user: Partial<User>): Promise<User | undefined>
@@ -57,6 +58,13 @@ export class MemStorage implements IStorage {
 		return user
 	}
 
+	async getUserByFid(fid: number): Promise<User | undefined> {
+		console.log(`[STORAGE] Getting user with FID: ${fid}`)
+		const user = Array.from(this.users.values()).find(user => user.fid === fid)
+		console.log(`[STORAGE] Found user by FID:`, user)
+		return user
+	}
+
 	async getUserByUsername(username: string): Promise<User | undefined> {
 		console.log(`[STORAGE] Getting user with username: ${username}`)
 		const user = Array.from(this.users.values()).find(
@@ -72,6 +80,7 @@ export class MemStorage implements IStorage {
 		const now = new Date()
 		const user: User = {
 			id,
+			fid: insertUser.fid,
 			username: insertUser.username,
 			displayName: insertUser.displayName ?? null,
 			bio: insertUser.bio ?? null,

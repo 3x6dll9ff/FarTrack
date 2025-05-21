@@ -205,17 +205,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		}
 	})
 
-	// Add sync endpoint
+	// Add new endpoint to get user by FID
+	app.get('/api/users/fid/:fid', async (req, res) => {
+		try {
+			const fid = parseInt(req.params.fid)
+			if (isNaN(fid)) {
+				return res.status(400).json({ message: 'Invalid FID' })
+			}
+
+			console.log(`[API] Getting user by FID: ${fid}`)
+			const user = await storage.getUserByFid(fid)
+			if (!user) {
+				console.log(`[API] User not found for FID: ${fid}`)
+				return res.status(404).json({ message: 'User not found' })
+			}
+
+			console.log(`[API] Found user:`, user)
+			res.json(user)
+		} catch (err) {
+			console.error('[API] Error getting user by FID:', err)
+			handleValidationError(err, res)
+		}
+	})
+
+	// Update sync endpoint to use FID
 	app.post('/api/users/sync', async (req, res) => {
 		try {
-			const { username, userId } = req.body
-			console.log(
-				`[SYNC] Syncing user data for username: ${username}, userId: ${userId}`
-			)
+			const { fid } = req.body
+			if (!fid) {
+				return res.status(400).json({ message: 'FID is required' })
+			}
+
+			console.log(`[SYNC] Syncing user data for FID: ${fid}`)
 
 			// Fetch user data from Warpcast
 			const warpcastResponse = await fetch(
-				`https://api.warpcast.com/v2/user/${username}`
+				`https://api.warpcast.com/v2/user/${fid}`
 			)
 			if (!warpcastResponse.ok) {
 				throw new Error(
@@ -237,6 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 			// Create or update user in our storage
 			const userData = {
+				fid: parseInt(fid),
 				username: warpcastUser.username,
 				displayName: warpcastUser.displayName,
 				bio: warpcastUser.bio,
@@ -246,11 +272,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 			}
 
 			let user
-			if (userId) {
-				console.log(`[SYNC] Updating existing user with ID: ${userId}`)
-				user = await storage.updateUser(userId, userData)
+			const existingUser = await storage.getUserByFid(parseInt(fid))
+			if (existingUser) {
+				console.log(`[SYNC] Updating existing user with FID: ${fid}`)
+				user = await storage.updateUser(existingUser.id, userData)
 			} else {
-				console.log(`[SYNC] Creating new user`)
+				console.log(`[SYNC] Creating new user with FID: ${fid}`)
 				user = await storage.createUser(userData)
 			}
 

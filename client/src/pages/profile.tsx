@@ -46,7 +46,9 @@ export default function Profile({ user }: ProfileProps) {
 			if (!userId) {
 				throw new Error('User ID missing')
 			}
-			return await getWarpcastUserProfile(userId)
+			const data = await getWarpcastUserProfile(userId)
+			clientLog('Warpcast user data:', data)
+			return data
 		},
 		enabled: !!userId,
 	})
@@ -65,9 +67,21 @@ export default function Profile({ user }: ProfileProps) {
 				throw new Error('User ID missing')
 			}
 			try {
-				const response = await fetch(`/api/users/${userId}`)
+				// First try to get user by FID
+				const response = await fetch(`/api/users/fid/${userId}`)
 				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`)
+					// If not found, try to sync with Warpcast
+					const syncResponse = await fetch('/api/users/sync', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ fid: userId }),
+					})
+					if (!syncResponse.ok) {
+						throw new Error(`HTTP error! status: ${syncResponse.status}`)
+					}
+					return await syncResponse.json()
 				}
 				const data = await response.json()
 				clientLog('User data fetched successfully', { data })
@@ -325,6 +339,35 @@ export default function Profile({ user }: ProfileProps) {
 			clientLog('Rendering Profile Content', { profileUser })
 			return (
 				<div className='p-4 space-y-6'>
+					{/* Debug Information */}
+					<Card className='border border-[#333333] bg-[#252525]'>
+						<CardHeader>
+							<CardTitle className='text-lg font-semibold'>
+								Debug Information
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className='space-y-2'>
+								<p className='text-sm text-gray-400'>Frame Context User:</p>
+								<pre className='bg-[#1a1a1a] p-2 rounded text-xs overflow-auto'>
+									{JSON.stringify(user, null, 2)}
+								</pre>
+
+								<p className='text-sm text-gray-400 mt-4'>
+									Warpcast User Data:
+								</p>
+								<pre className='bg-[#1a1a1a] p-2 rounded text-xs overflow-auto'>
+									{JSON.stringify(warpcastUser, null, 2)}
+								</pre>
+
+								<p className='text-sm text-gray-400 mt-4'>Profile User Data:</p>
+								<pre className='bg-[#1a1a1a] p-2 rounded text-xs overflow-auto'>
+									{JSON.stringify(profileUser, null, 2)}
+								</pre>
+							</div>
+						</CardContent>
+					</Card>
+
 					{/* Profile Header */}
 					<div className='flex items-center space-x-4'>
 						<img

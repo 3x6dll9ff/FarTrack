@@ -1,0 +1,98 @@
+// Warpcast API интеграция
+
+// Конфигурация API
+const WARPCAST_API_URL = 'https://api.warpcast.com/v2'
+
+// Типы для Warpcast API
+export interface WarpcastUserProfile {
+	fid: number
+	username: string
+	displayName: string
+	pfp: {
+		url: string
+	}
+	followerCount: number
+	followingCount: number
+	bio: string
+}
+
+export interface WarpcastCast {
+	hash: string
+	threadHash: string
+	text: string
+	timestamp: string
+	reactions: {
+		count: number
+	}
+	recasts: {
+		count: number
+	}
+	replies: {
+		count: number
+	}
+	author: {
+		fid: number
+		username: string
+		displayName: string
+		pfp: {
+			url: string
+		}
+	}
+}
+
+export class WarpcastClient {
+	private apiKey: string
+
+	constructor(apiKey: string) {
+		this.apiKey = apiKey
+	}
+
+	async getUserProfile(fid: string) {
+		const response = await fetch(`${WARPCAST_API_URL}/user/${fid}`, {
+			headers: {
+				Authorization: `Bearer ${this.apiKey}`,
+			},
+		})
+		return response.json()
+	}
+
+	async getCasts(fid: string, limit = 10) {
+		const response = await fetch(
+			`${WARPCAST_API_URL}/casts?fid=${fid}&limit=${limit}`,
+			{
+				headers: {
+					Authorization: `Bearer ${this.apiKey}`,
+				},
+			}
+		)
+		return response.json()
+	}
+
+	async getEngagement(fid: string) {
+		const response = await fetch(`${WARPCAST_API_URL}/user/${fid}/engagement`, {
+			headers: {
+				Authorization: `Bearer ${this.apiKey}`,
+			},
+		})
+		return response.json()
+	}
+
+	async shareAchievement(name: string, description: string) {
+		const response = await fetch(`${WARPCAST_API_URL}/cast`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${this.apiKey}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				text: `🎉 ${name}\n${description}\n\nTrack your achievements with FarTrack!`,
+			}),
+		})
+		return response.json()
+	}
+}
+
+// Create a singleton instance
+export const warpcastClient = new WarpcastClient(
+	import.meta.env.VITE_WARPCAST_API_KEY || ''
+)

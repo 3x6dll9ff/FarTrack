@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1"
+		/>
+		<title>FarTrack - Farcaster Analytics Platform</title>
+		<meta
+			name="description"
+			content="Track your Farcaster engagement, monitor profile performance, and earn achievements with FarTrack analytics platform."
+		/>
+
+		<!-- Warpcast Meta Tags -->
+		<meta property="fc:frame" content="vNext" />
+		<meta
+			property="fc:frame:image"
+			content="https://your-domain.com/og-image.png"
+		/>
+		<meta property="fc:frame:button:1" content="Open FarTrack" />
+		<meta
+			property="fc:frame:post_url"
+			content="https://your-domain.com/api/frame"
+		/>
+
+		<!-- Open Graph tags -->
+		<meta
+			property="og:title"
+			content="FarTrack - Farcaster Analytics Platform"
+		/>
+		<meta
+			property="og:description"
+			content="Track engagement, monitor profile performance, and earn points through Farcaster activity."
+		/>
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content="https://your-domain.com" />
+		<meta property="og:image" content="https://your-domain.com/og-image.png" />
+
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script type="module" src="/src/main.tsx"></script>
+		<script type="module">
+			import { sdk } from 'https://esm.sh/@farcaster/frame-sdk'
+			window.farcaster = sdk
+		</script>
+		<!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+		<script
+			type="text/javascript"
+			src="https://replit.com/public/js/replit-dev-banner.js"
+		></script>
+	</body>
+</html>

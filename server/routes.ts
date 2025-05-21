@@ -167,41 +167,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 	// Add new log endpoint
 	app.post('/api/log', (req, res) => {
 		const { level, message, ...metadata } = req.body
-		// Log the message on the server side
+		// Log the message on the server side with full context
 		const logMessage = `[CLIENT LOG] [${level || 'info'}] ${message}`
-		if (Object.keys(metadata).length > 0) {
-			console.log(logMessage, JSON.stringify(metadata))
+
+		// Log the full context if it's a SDK context message
+		if (message === 'Full SDK Context:') {
+			console.log(logMessage)
+			console.log('SDK Context Data:', JSON.stringify(metadata, null, 2))
+		} else if (Object.keys(metadata).length > 0) {
+			console.log(logMessage, JSON.stringify(metadata, null, 2))
 		} else {
 			console.log(logMessage)
 		}
+
 		res.sendStatus(200)
 	})
 
-	// Add Warpcast API proxy endpoint
-	app.get('/api/warpcast/user/:fid', async (req, res) => {
-		try {
-			const { fid } = req.params
-			console.log(`[WARPCAST API] Fetching user profile for FID: ${fid}`)
+	// Warpcast API proxy
+	app.get('/api/warpcast/user/:username', async (req, res) => {
+		const { username } = req.params
+		console.log('[WARPCAST] Fetching user profile for username:', username)
 
-			const response = await fetch(`https://api.warpcast.com/v2/user/${fid}`)
-			console.log(`[WARPCAST API] Response status: ${response.status}`)
+		try {
+			const response = await fetch(`${WARPCAST_API_URL}/user/${username}`)
+			console.log('[WARPCAST] Response status:', response.status)
 
 			if (!response.ok) {
+				console.error(
+					'[WARPCAST] Error response:',
+					response.status,
+					response.statusText
+				)
 				throw new Error(`HTTP error! status: ${response.status}`)
 			}
 
 			const data = await response.json()
-			console.log(
-				`[WARPCAST API] Response data:`,
-				JSON.stringify(data, null, 2)
-			)
-
+			console.log('[WARPCAST] Response data:', data)
 			res.json(data)
 		} catch (error) {
-			console.error('[WARPCAST API] Error:', error)
-			res
-				.status(500)
-				.json({ error: 'Failed to fetch user profile from Warpcast' })
+			console.error('[WARPCAST] Error:', error)
+			res.status(500).json({ error: 'Failed to fetch user profile' })
 		}
 	})
 

@@ -30,15 +30,11 @@ interface ProfileProps {
 
 export default function Profile({ user }: ProfileProps) {
 	const { id } = useParams()
-	// Use the FID from user context if available, otherwise fallback to URL param
-	const userId =
-		user?.fid || (id === 'me' ? user?.fid : id ? parseInt(id) : undefined)
 	const { toast } = useToast()
 
-	// Log user context data
-	clientLog('User Context Data:', {
-		rawUser: user,
-		parsedUser: {
+	// Log full SDK context
+	clientLog('Full SDK Context:', {
+		user: {
 			fid: user?.fid,
 			username: user?.username,
 			displayName: user?.displayName,
@@ -46,33 +42,37 @@ export default function Profile({ user }: ProfileProps) {
 			bio: user?.bio,
 			location: user?.location,
 		},
-		selectedUserId: userId,
+		location: user?.location,
+		client: user?.client,
 	})
 
-	// Fetch Warpcast user data
+	// First fetch Warpcast user data to get the correct FID
 	const {
 		data: warpcastUser,
 		isLoading: warpcastLoading,
 		isError: warpcastError,
 	} = useQuery({
-		queryKey: ['warpcast-user', userId],
+		queryKey: ['warpcast-user', user?.username],
 		queryFn: async () => {
-			if (!userId) {
-				clientLog('No user ID available for Warpcast API request')
-				throw new Error('User ID missing')
+			if (!user?.username) {
+				clientLog('No username available for Warpcast API request')
+				throw new Error('Username missing')
 			}
-			clientLog('Fetching Warpcast data for FID:', userId)
-			const data = await getWarpcastUserProfile(userId)
+			clientLog('Fetching Warpcast data for username:', user.username)
+			const data = await getWarpcastUserProfile(user.username)
 			clientLog('Warpcast API Response:', {
-				requestedFid: userId,
+				requestedUsername: user.username,
 				response: data,
 			})
 			return data
 		},
-		enabled: !!userId,
+		enabled: !!user?.username,
 	})
 
-	// Fetch user data from our API
+	// Get the FID from Warpcast response
+	const userId = warpcastUser?.fid
+
+	// Fetch user data from our API using the FID from Warpcast
 	const {
 		data: profileUser,
 		isLoading: userLoading,
@@ -82,8 +82,8 @@ export default function Profile({ user }: ProfileProps) {
 		queryKey: ['/api/users', userId],
 		queryFn: async () => {
 			if (!userId) {
-				clientLog('User ID is missing for profile fetch')
-				throw new Error('User ID missing')
+				clientLog('No FID available for profile fetch')
+				throw new Error('FID missing')
 			}
 			try {
 				// First try to get user by FID
@@ -114,48 +114,7 @@ export default function Profile({ user }: ProfileProps) {
 		retry: 1,
 	})
 
-	// Функция для синхронизации с Warpcast
-	const syncWithWarpcast = async (username: string) => {
-		if (!username) {
-			toast({
-				title: 'Ошибка',
-				description: 'Имя пользователя не указано',
-				variant: 'destructive',
-			})
-			return
-		}
-
-		toast({
-			title: 'Синхронизация...',
-			description: 'Получение данных из Warpcast',
-		})
-
-		try {
-			const result = await warpcastClient.syncUserData(username, userId)
-
-			if (result) {
-				toast({
-					title: 'Успех!',
-					description: 'Профиль синхронизирован с Warpcast',
-					variant: 'default',
-				})
-			} else {
-				toast({
-					title: 'Ошибка',
-					description: 'Не удалось синхронизировать профиль',
-					variant: 'destructive',
-				})
-			}
-		} catch (error) {
-			toast({
-				title: 'Ошибка',
-				description: 'Произошла ошибка при синхронизации',
-				variant: 'destructive',
-			})
-		}
-	}
-
-	// Fetch achievements
+	// Fetch achievements using the FID from Warpcast
 	const {
 		data: achievements,
 		isLoading: achievementsLoading,
@@ -165,7 +124,7 @@ export default function Profile({ user }: ProfileProps) {
 		queryKey: [`/api/users/${userId}/achievements`],
 		queryFn: async () => {
 			if (!userId) {
-				throw new Error('User ID missing')
+				throw new Error('FID missing')
 			}
 			try {
 				const response = await fetch(`/api/users/fid/${userId}/achievements`)
@@ -184,7 +143,7 @@ export default function Profile({ user }: ProfileProps) {
 		retry: 1,
 	})
 
-	// Fetch stats
+	// Fetch stats using the FID from Warpcast
 	const {
 		data: stats,
 		isLoading: statsLoading,
@@ -194,7 +153,7 @@ export default function Profile({ user }: ProfileProps) {
 		queryKey: [`/api/users/${userId}/stats`],
 		queryFn: async () => {
 			if (!userId) {
-				throw new Error('User ID missing')
+				throw new Error('FID missing')
 			}
 			try {
 				const response = await fetch(`/api/users/fid/${userId}/stats`)

@@ -1,15 +1,15 @@
 {
 	"accountAssociation": {
 		"header": "eyJmaWQiOjU1NDM2MiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDQwZTdjNDUyQjBiNkY1MjcxZjkxNDI2NUQ0MmNmYmU0NkMyZDlFYjYifQ",
-		"payload": "eyJkb21haW4iOiJmYXJ0cmFjay1wcm9kdWN0aW9uLnVwLnJhaWx3YXkuYXBwIn0",
-		"signature": "MHgzZDE5NjI2MDgzYWExOTQ3NTM5MjBiNjU1MWQ0NGRhNWE0ODA0ZjgxM2YzMmJiN2YwMjE0MjNlNTYwNGU4NjE0MGYyYzcwOThkMjY3NTg0YjRjZGFjYzg5YmRlMjdhMmI0ZTk0ZDYzZDhkMjE4MjA3ZGVhY2FlMGM1NDdiNjlmMjFi"
+		"payload": "eyJkb21haW4iOiJmYXJ0cmFjay1wcm9kdWN0aW9uLTVhZTgudXAucmFpbHdheS5hcHAifQ",
+		"signature": "MHgzNzQ5ZmJjMmRkMjY5ZDdiODkwMGYyODc1MjYyY2YzNTgwNjhlMGMyY2E5MzRjYzU4MTBlOGY0M2JmMDI0YTQwMWY2MTgwODMwOTkyN2ZlOTczNzVkMzJkYWNhZGQzZDdlMjMxZTllNGU3YWU3OTZjMjBmZDkzNDk2NGQyZGJjMTFj"
 	},
 	"frame": {
 		"version": "1",
 		"name": "FarTrack",
-		"iconUrl": "https://fartrack-production.up.railway.app/logo.png",
-		"homeUrl": "https://fartrack-production.up.railway.app",
-		"splashImageUrl": "https://fartrack-production.up.railway.app/logo.png",
+		"iconUrl": "https://fartrack-production-5ae8.up.railway.app/logo.png",
+		"homeUrl": "https://fartrack-production-5ae8.up.railway.app",
+		"splashImageUrl": "https://fartrack-production-5ae8.up.railway.app/logo.png",
 		"splashBackgroundColor": "#000000",
 		"subtitle": "Farcaster Analytics Platform",
 		"description": "Track your Farcaster engagement, achievements, and analytics in one place.",
@@ -17,6 +17,6 @@
 		"tags": ["analytics", "farcaster", "social", "tracking", "achievements"],
 		"ogTitle": "FarTrack - Farcaster Analytics",
 		"ogDescription": "Track your Farcaster engagement, achievements, and analytics in one place.",
-		"ogImageUrl": "https://fartrack-production.up.railway.app/og.png"
+		"ogImageUrl": "https://fartrack-production-5ae8.up.railway.app/og.png"
 	}
 }

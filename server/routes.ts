@@ -362,11 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 			}
 
 			// Verify the signature using Farcaster's verification
-			const verificationResult = await verifySignInMessage(
-				message,
-				signature,
-				nonce
-			)
+			const verificationResult = await verifySignInMessage(message)
 
 			if (!verificationResult.success) {
 				return res.status(401).json({
@@ -389,11 +385,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 			const user = await storage.createOrUpdateUser({
 				fid: verificationResult.fid,
 				username: warpcastUser.username,
-				display_name: warpcastUser.displayName,
-				pfp_url: warpcastUser.pfp,
+				displayName: warpcastUser.displayName,
+				profileImage: warpcastUser.pfp,
 				bio: warpcastUser.bio,
 				active_on_farcaster: true,
-				registered_at: new Date().toISOString(),
+				registrationDate: new Date(),
 			})
 
 			// Generate session token
@@ -434,11 +430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 	}
 
 	// Helper function to verify Farcaster sign-in message
-	async function verifySignInMessage(
-		message: string,
-		signature: string,
-		nonce: string
-	) {
+	async function verifySignInMessage(message: string) {
 		try {
 			// TODO: Implement actual Farcaster signature verification
 			// This is a placeholder that should be replaced with actual verification logic

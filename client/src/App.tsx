@@ -1,38 +1,47 @@
-import { Switch, Route } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/ui/theme-provider";
-import NotFound from "@/pages/not-found";
-import Dashboard from "@/pages/dashboard";
-import Profile from "@/pages/profile";
-import Analytics from "@/pages/analytics";
-import Achievements from "@/pages/achievements";
+import { ThemeProvider } from '@/components/ui/theme-provider'
+import { Toaster } from '@/components/ui/toaster'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import Achievements from '@/pages/achievements'
+import Analytics from '@/pages/analytics'
+import Dashboard from '@/pages/dashboard'
+import NotFound from '@/pages/not-found'
+import Profile from '@/pages/profile'
+import { type FrameContext } from '@farcaster/frame-sdk'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { Route, Switch } from 'wouter'
+import { queryClient } from './lib/queryClient'
 
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/profile/:id" component={Profile} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/achievements" component={Achievements} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+interface RouterProps {
+	user?: FrameContext['user']
 }
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  );
+function Router({ user }: RouterProps) {
+	return (
+		<Switch>
+			<Route path='/' component={Dashboard} />
+			<Route path='/profile/:id' component={Profile} />
+			<Route path='/analytics' component={Analytics} />
+			<Route path='/achievements' component={Achievements} />
+			<Route component={NotFound} />
+		</Switch>
+	)
 }
 
-export default App;
+interface AppProps {
+	user?: FrameContext['user']
+}
+
+function App({ user }: AppProps) {
+	return (
+		<QueryClientProvider client={queryClient}>
+			<ThemeProvider defaultTheme='light'>
+				<TooltipProvider>
+					<Toaster />
+					<Router user={user} />
+				</TooltipProvider>
+			</ThemeProvider>
+		</QueryClientProvider>
+	)
+}
+
+export default App

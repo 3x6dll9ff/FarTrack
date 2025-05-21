@@ -47,8 +47,8 @@ ENV RAILWAY_HEALTHCHECK_PATH=/health
 EXPOSE 3000
 
 # Добавляем health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Запускаем приложение
 CMD ["node", "dist/server.js"] 

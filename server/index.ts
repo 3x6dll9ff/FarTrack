@@ -35,7 +35,14 @@ app.use(passport.session())
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-	res.status(200).json({ status: 'ok' })
+	const healthData = {
+		status: 'ok',
+		timestamp: new Date().toISOString(),
+		uptime: process.uptime(),
+		memory: process.memoryUsage(),
+		env: process.env.NODE_ENV,
+	}
+	res.status(200).json(healthData)
 })
 
 // Настройка WebSocket

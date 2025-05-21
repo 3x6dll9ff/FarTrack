@@ -9,6 +9,9 @@ import {
 } from '../shared/schema.js'
 import { storage } from './storage.js'
 
+// API Configuration
+const WARPCAST_API_URL = 'https://api.warpcast.com/v2'
+
 // Error handler for validation errors
 const handleValidationError = (err: unknown, res: Response) => {
 	if (err instanceof ZodError) {

@@ -293,5 +293,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		}
 	})
 
+	// Add new endpoints for fetching data by FID
+	app.get('/api/users/fid/:fid/achievements', async (req, res) => {
+		try {
+			const fid = parseInt(req.params.fid)
+			if (isNaN(fid)) {
+				return res.status(400).json({ message: 'Invalid FID' })
+			}
+
+			console.log(`[API] Getting achievements for FID: ${fid}`)
+			const user = await storage.getUserByFid(fid)
+			if (!user) {
+				console.log(`[API] User not found for FID: ${fid}`)
+				return res.status(404).json({ message: 'User not found' })
+			}
+
+			const achievements = await storage.getUserAchievements(user.id)
+			console.log(`[API] Found achievements:`, achievements)
+			res.json(achievements)
+		} catch (err) {
+			console.error('[API] Error getting achievements:', err)
+			handleValidationError(err, res)
+		}
+	})
+
+	app.get('/api/users/fid/:fid/stats', async (req, res) => {
+		try {
+			const fid = parseInt(req.params.fid)
+			if (isNaN(fid)) {
+				return res.status(400).json({ message: 'Invalid FID' })
+			}
+
+			console.log(`[API] Getting stats for FID: ${fid}`)
+			const user = await storage.getUserByFid(fid)
+			if (!user) {
+				console.log(`[API] User not found for FID: ${fid}`)
+				return res.status(404).json({ message: 'User not found' })
+			}
+
+			const period = req.query.period as string | undefined
+			const stats = await storage.getUserStats(user.id, period)
+			console.log(`[API] Found stats:`, stats)
+			res.json(stats)
+		} catch (err) {
+			console.error('[API] Error getting stats:', err)
+			handleValidationError(err, res)
+		}
+	})
+
 	return createServer(app)
 }

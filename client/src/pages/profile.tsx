@@ -145,8 +145,11 @@ export default function Profile({ user }: ProfileProps) {
 	} = useQuery({
 		queryKey: [`/api/users/${userId}/achievements`],
 		queryFn: async () => {
+			if (!userId) {
+				throw new Error('User ID missing')
+			}
 			try {
-				const response = await fetch(`/api/users/${userId}/achievements`)
+				const response = await fetch(`/api/users/fid/${userId}/achievements`)
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`)
 				}
@@ -171,8 +174,11 @@ export default function Profile({ user }: ProfileProps) {
 	} = useQuery({
 		queryKey: [`/api/users/${userId}/stats`],
 		queryFn: async () => {
+			if (!userId) {
+				throw new Error('User ID missing')
+			}
 			try {
-				const response = await fetch(`/api/users/${userId}/stats`)
+				const response = await fetch(`/api/users/fid/${userId}/stats`)
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`)
 				}

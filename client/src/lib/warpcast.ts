@@ -104,11 +104,25 @@ export const getWarpcastUserProfile = async (
 	fid: number
 ): Promise<WarpcastUserProfile | null> => {
 	try {
-		const response = await fetch(`${WARPCAST_API_URL}/user?fid=${fid}`)
+		console.log('Fetching Warpcast user profile for FID:', fid)
+		const url = `/api/warpcast/user/${fid}`
+		console.log('API URL:', url)
+
+		const response = await fetch(url)
+		console.log('API Response status:', response.status)
+
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`)
 		}
+
 		const data = await response.json()
+		console.log('API Response data:', data)
+
+		if (!data.result?.user) {
+			console.error('No user data in response:', data)
+			return null
+		}
+
 		return data.result.user
 	} catch (error) {
 		console.error('Error fetching Warpcast user profile:', error)

@@ -177,5 +177,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 		res.sendStatus(200)
 	})
 
+	// Add Warpcast API proxy endpoint
+	app.get('/api/warpcast/user/:fid', async (req, res) => {
+		try {
+			const { fid } = req.params
+			console.log(`[WARPCAST API] Fetching user profile for FID: ${fid}`)
+
+			const response = await fetch(`https://api.warpcast.com/v2/user/${fid}`)
+			console.log(`[WARPCAST API] Response status: ${response.status}`)
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`)
+			}
+
+			const data = await response.json()
+			console.log(
+				`[WARPCAST API] Response data:`,
+				JSON.stringify(data, null, 2)
+			)
+
+			res.json(data)
+		} catch (error) {
+			console.error('[WARPCAST API] Error:', error)
+			res
+				.status(500)
+				.json({ error: 'Failed to fetch user profile from Warpcast' })
+		}
+	})
+
 	return createServer(app)
 }

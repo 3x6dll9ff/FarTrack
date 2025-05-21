@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { clientLog } from '@/lib/clientLogger'
-import { warpcastClient } from '@/lib/warpcast'
+import { getWarpcastUserProfile } from '@/lib/warpcast'
 import { Achievement } from '@shared/schema'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -35,7 +35,23 @@ export default function Profile({ user }: ProfileProps) {
 
 	clientLog('Profile component mounted', { userId, user })
 
-	// Fetch user data
+	// Fetch Warpcast user data
+	const {
+		data: warpcastUser,
+		isLoading: warpcastLoading,
+		isError: warpcastError,
+	} = useQuery({
+		queryKey: ['warpcast-user', userId],
+		queryFn: async () => {
+			if (!userId) {
+				throw new Error('User ID missing')
+			}
+			return await getWarpcastUserProfile(userId)
+		},
+		enabled: !!userId,
+	})
+
+	// Fetch user data from our API
 	const {
 		data: profileUser,
 		isLoading: userLoading,
@@ -312,22 +328,30 @@ export default function Profile({ user }: ProfileProps) {
 					{/* Profile Header */}
 					<div className='flex items-center space-x-4'>
 						<img
-							src={profileUser.pfp_url || '/default-avatar.png'}
+							src={
+								warpcastUser?.pfp?.url ||
+								profileUser.pfp_url ||
+								'/default-avatar.png'
+							}
 							alt={
+								warpcastUser?.displayName ||
 								profileUser.display_name ||
-								profileUser.username ||
 								'User Avatar'
 							}
 							className='w-24 h-24 rounded-full object-cover'
 						/>
 						<div className='flex-1 space-y-2'>
 							<h1 className='text-2xl font-bold'>
-								{profileUser.display_name || 'N/A'} (
-								{profileUser.username || 'N/A'})
+								{warpcastUser?.displayName || profileUser.display_name || 'N/A'}{' '}
+								({warpcastUser?.username || profileUser.username || 'N/A'})
 							</h1>
-							<p className='text-gray-400 text-sm'>FID: {profileUser.fid}</p>
-							{profileUser.bio && (
-								<p className='text-gray-300 text-sm'>{profileUser.bio}</p>
+							<p className='text-gray-400 text-sm'>
+								FID: {warpcastUser?.fid || profileUser.fid}
+							</p>
+							{(warpcastUser?.bio || profileUser.bio) && (
+								<p className='text-gray-300 text-sm'>
+									{warpcastUser?.bio || profileUser.bio}
+								</p>
 							)}
 						</div>
 					</div>
@@ -335,10 +359,18 @@ export default function Profile({ user }: ProfileProps) {
 					{/* Follow Stats */}
 					<div className='flex space-x-4 text-sm text-gray-400'>
 						<span>
-							<strong>{profileUser.follower_count || 0}</strong> Followers
+							<strong>
+								{warpcastUser?.followerCount || profileUser.follower_count || 0}
+							</strong>{' '}
+							Followers
 						</span>
 						<span>
-							<strong>{profileUser.following_count || 0}</strong> Following
+							<strong>
+								{warpcastUser?.followingCount ||
+									profileUser.following_count ||
+									0}
+							</strong>{' '}
+							Following
 						</span>
 					</div>
 

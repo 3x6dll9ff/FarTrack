@@ -1,9 +1,9 @@
-// Warpcast API интеграция
+// Warpcast API integration
 
-// Конфигурация API
+// API Configuration
 const WARPCAST_API_URL = 'https://api.warpcast.com/v2'
 
-// Типы для Warpcast API
+// Types for Warpcast API
 export interface WarpcastUserProfile {
 	fid: number
 	username: string
@@ -96,3 +96,45 @@ export class WarpcastClient {
 export const warpcastClient = new WarpcastClient(
 	import.meta.env.VITE_WARPCAST_API_KEY || ''
 )
+
+// Function to get user profile from Warpcast
+export const getWarpcastUserProfile = async (
+	fid: number
+): Promise<WarpcastUserProfile | null> => {
+	try {
+		const response = await fetch(`${WARPCAST_API_URL}/user?fid=${fid}`)
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`)
+		}
+		const data = await response.json()
+		return data.result.user
+	} catch (error) {
+		console.error('Error fetching Warpcast user profile:', error)
+		return null
+	}
+}
+
+// Function to sync user data with our app
+export const syncUserData = async (
+	username: string,
+	userId?: number
+): Promise<boolean> => {
+	try {
+		const response = await fetch(`/api/users/sync`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ username, userId }),
+		})
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`)
+		}
+
+		return true
+	} catch (error) {
+		console.error('Error syncing user data:', error)
+		return false
+	}
+}

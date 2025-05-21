@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { clientLog } from '@/lib/clientLogger'
+import { getWarpcastUserProfile } from '@/lib/warpcast'
 import { type FrameContext } from '@farcaster/frame-sdk'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowUp, Award, Heart, Repeat } from 'lucide-react'
@@ -24,6 +25,18 @@ interface DashboardProps {
 
 export default function Dashboard({ user }: DashboardProps) {
 	clientLog('info', 'Dashboard rendered. User prop:', user)
+
+	// Fetch Warpcast user data
+	const { data: warpcastUser, isLoading: warpcastLoading } = useQuery({
+		queryKey: ['warpcast-user', user?.fid],
+		queryFn: async () => {
+			if (!user?.fid) {
+				throw new Error('User FID missing')
+			}
+			return await getWarpcastUserProfile(user.fid)
+		},
+		enabled: !!user?.fid,
+	})
 
 	// Получение данных пользователя
 	const {
@@ -178,25 +191,30 @@ export default function Dashboard({ user }: DashboardProps) {
 	clientLog('info', 'Starting to render dashboard JSX')
 
 	return (
-		<AppLayout title='FarTrack'>
+		<AppLayout title='FarTrack' user={user}>
 			{shouldShowSkeleton ? (
 				<DashboardSkeleton />
 			) : (
 				<div className='p-4 space-y-5'>
-					{/* Приветствие и профиль */}
+					{/* Welcome and profile */}
 					<div className='flex items-center'>
 						<Avatar className='h-12 w-12 border-2 border-purple-100'>
 							<AvatarImage
-								src={user?.pfpUrl || userData?.profileImage}
+								src={
+									warpcastUser?.pfp?.url ||
+									user?.pfpUrl ||
+									userData?.profileImage
+								}
 								alt={
+									warpcastUser?.displayName ||
 									user?.displayName ||
-									user?.username ||
 									userData?.displayName ||
 									'User'
 								}
 							/>
 							<AvatarFallback>
-								{user?.username?.substring(0, 2).toUpperCase() ||
+								{warpcastUser?.username?.substring(0, 2).toUpperCase() ||
+									user?.username?.substring(0, 2).toUpperCase() ||
 									userData?.username?.substring(0, 2).toUpperCase() ||
 									'RU'}
 							</AvatarFallback>
@@ -204,8 +222,8 @@ export default function Dashboard({ user }: DashboardProps) {
 						<div className='ml-3'>
 							<h2 className='text-lg font-bold text-white'>
 								Hey,{' '}
-								{user?.displayName ||
-									user?.username ||
+								{warpcastUser?.displayName ||
+									user?.displayName ||
 									userData?.displayName ||
 									'User'}
 								!

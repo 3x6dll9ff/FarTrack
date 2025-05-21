@@ -4,16 +4,18 @@
 const WARPCAST_API_URL = 'https://api.warpcast.com/v2'
 
 // Types for Warpcast API
+export interface AccountLocation {
+	placeId: string
+	description: string
+}
+
 export interface WarpcastUserProfile {
 	fid: number
-	username: string
-	displayName: string
-	pfp: {
-		url: string
-	}
-	followerCount: number
-	followingCount: number
-	bio: string
+	username?: string
+	displayName?: string
+	pfp?: string
+	bio?: string
+	location?: AccountLocation
 }
 
 export interface WarpcastCast {

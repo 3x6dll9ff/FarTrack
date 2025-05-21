@@ -329,7 +329,7 @@ export default function Profile({ user }: ProfileProps) {
 					<div className='flex items-center space-x-4'>
 						<img
 							src={
-								warpcastUser?.pfp?.url ||
+								warpcastUser?.pfp ||
 								profileUser.pfp_url ||
 								'/default-avatar.png'
 							}
@@ -351,6 +351,11 @@ export default function Profile({ user }: ProfileProps) {
 							{(warpcastUser?.bio || profileUser.bio) && (
 								<p className='text-gray-300 text-sm'>
 									{warpcastUser?.bio || profileUser.bio}
+								</p>
+							)}
+							{warpcastUser?.location && (
+								<p className='text-gray-400 text-sm'>
+									📍 {warpcastUser.location.description}
 								</p>
 							)}
 						</div>

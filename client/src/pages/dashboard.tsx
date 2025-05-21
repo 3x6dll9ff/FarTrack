@@ -201,9 +201,7 @@ export default function Dashboard({ user }: DashboardProps) {
 						<Avatar className='h-12 w-12 border-2 border-purple-100'>
 							<AvatarImage
 								src={
-									warpcastUser?.pfp?.url ||
-									user?.pfpUrl ||
-									userData?.profileImage
+									warpcastUser?.pfp || user?.pfpUrl || userData?.profileImage
 								}
 								alt={
 									warpcastUser?.displayName ||
@@ -231,6 +229,11 @@ export default function Dashboard({ user }: DashboardProps) {
 							<p className='text-sm text-gray-400'>
 								Track your Farcaster engagement
 							</p>
+							{warpcastUser?.location && (
+								<p className='text-xs text-gray-500'>
+									📍 {warpcastUser.location.description}
+								</p>
+							)}
 						</div>
 					</div>
 

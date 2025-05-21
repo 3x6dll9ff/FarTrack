@@ -9,7 +9,7 @@
 		"dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
 		"build:client": "vite build",
 		"build:server": "tsc -p tsconfig.server.json",
-		"build": "npm run build:client && npm run build:server",
+		"build": "npm run build:client && npm run build:server && cp -r public dist/",
 		"start": "NODE_ENV=production node --experimental-specifier-resolution=node dist/server/index.js",
 		"clean": "rm -rf dist",
 		"lint": "eslint . --ext .ts,.tsx",

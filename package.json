@@ -8,6 +8,7 @@
 		"dev:server": "tsx server/index.ts",
 		"dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
 		"build": "vite build && tsx server/vite.ts",
+		"build:server": "tsx server/vite.ts",
 		"start": "NODE_ENV=production node dist/server.js",
 		"check": "tsc",
 		"db:push": "drizzle-kit push"

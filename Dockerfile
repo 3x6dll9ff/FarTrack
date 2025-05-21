@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Устанавливаем необходимые системные зависимости
+RUN apk add --no-cache python3 make g++
+
 # Копируем файлы для установки зависимостей
 COPY package.json package-lock.json .npmrc ./
 RUN npm install
@@ -25,7 +28,7 @@ COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/.npmrc ./
 
 # Устанавливаем только production зависимости
-RUN npm ci --only=production
+RUN npm ci --only=production --ignore-scripts
 
 # Устанавливаем переменные окружения
 ENV NODE_ENV=production

@@ -8,36 +8,26 @@ import NotFound from '@/pages/not-found'
 import Profile from '@/pages/profile'
 import { type FrameContext } from '@farcaster/frame-sdk'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { Route, Switch } from 'wouter'
+import { Routes, Route } from 'react-router-dom'
 import { queryClient } from './lib/queryClient'
 
 interface RouterProps {
 	user?: FrameContext['user']
 }
 
-function Router({ user }: RouterProps) {
-	return (
-		<Switch>
-			<Route path='/'>{params => <Dashboard user={user} {...params} />}</Route>
-			<Route path='/profile/:id' component={Profile} />
-			<Route path='/analytics' component={Analytics} />
-			<Route path='/achievements' component={Achievements} />
-			<Route component={NotFound} />
-		</Switch>
-	)
-}
-
-interface AppProps {
-	user?: FrameContext['user']
-}
-
-function App({ user }: AppProps) {
+function App({ user }: RouterProps) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<ThemeProvider defaultTheme='light'>
 				<TooltipProvider>
 					<Toaster />
-					<Router user={user} />
+					<Routes>
+						<Route path='/' element={<Dashboard user={user} />} />
+						<Route path='/profile/:id' element={<Profile />} />
+						<Route path='/analytics' element={<Analytics />} />
+						<Route path='/achievements' element={<Achievements />} />
+						<Route path='*' element={<NotFound />} />
+					</Routes>
 				</TooltipProvider>
 			</ThemeProvider>
 		</QueryClientProvider>

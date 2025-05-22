@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { clientLog } from './clientLogger'
+import { sdk } from './sdk'
 
 // API request helper
 export async function apiRequest<T>(
@@ -7,13 +8,20 @@ export async function apiRequest<T>(
 	options: RequestInit = {}
 ): Promise<T> {
 	try {
+		// Add authentication headers if SDK is initialized
+		const headers: Record<string, string> = {
+			'Content-Type': 'application/json',
+			...options.headers,
+		}
+
+		if (sdk.isInitialized() && sdk.context.user.fid) {
+			headers['X-Farcaster-User-Fid'] = sdk.context.user.fid.toString()
+		}
+
 		const response = await fetch(url, {
 			...options,
 			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				...options.headers,
-			},
+			headers,
 		})
 
 		if (!response.ok) {

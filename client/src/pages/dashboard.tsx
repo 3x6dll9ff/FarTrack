@@ -3,9 +3,11 @@ import { DashboardSkeleton } from '@/components/dashboard/skeleton'
 import { StatCard } from '@/components/dashboard/stat-card'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { clientLog } from '@/lib/clientLogger'
+import { sdk } from '@/lib/sdk'
 import { getWarpcastUserProfile } from '@/lib/warpcast'
 import { type FrameContext } from '@farcaster/frame-sdk'
 import { useQuery } from '@tanstack/react-query'
@@ -18,7 +20,6 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { Button } from '@/components/ui/button'
 
 interface DashboardProps {
 	user?: FrameContext['user']
@@ -27,8 +28,25 @@ interface DashboardProps {
 export default function Dashboard({ user }: DashboardProps) {
 	clientLog('info', 'Dashboard rendered. User prop:', user)
 
+	// Check if SDK is initialized
+	if (!sdk.isInitialized()) {
+		clientLog('error', 'SDK not initialized')
+		return (
+			<div className='flex flex-col items-center justify-center h-full text-red-400'>
+				<p>SDK not initialized. Please try again.</p>
+				<Button onClick={() => window.location.reload()} className='mt-4'>
+					Retry
+				</Button>
+			</div>
+		)
+	}
+
 	// Fetch Warpcast user data
-	const { data: warpcastUser, isLoading: warpcastLoading, error: warpcastError } = useQuery({
+	const {
+		data: warpcastUser,
+		isLoading: warpcastLoading,
+		error: warpcastError,
+	} = useQuery({
 		queryKey: ['warpcast-user', user?.fid],
 		queryFn: async () => {
 			if (!user?.fid) {
@@ -168,9 +186,9 @@ export default function Dashboard({ user }: DashboardProps) {
 
 	if (hasError) {
 		return (
-			<div className="flex flex-col items-center justify-center h-full text-red-400">
+			<div className='flex flex-col items-center justify-center h-full text-red-400'>
 				<p>Error loading dashboard data.</p>
-				<Button onClick={() => window.location.reload()} className="mt-4">
+				<Button onClick={() => window.location.reload()} className='mt-4'>
 					Retry
 				</Button>
 			</div>
@@ -179,7 +197,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
 	if (!hasData) {
 		return (
-			<div className="flex flex-col items-center justify-center h-full text-gray-400">
+			<div className='flex flex-col items-center justify-center h-full text-gray-400'>
 				<p>No data available.</p>
 			</div>
 		)
@@ -215,9 +233,7 @@ export default function Dashboard({ user }: DashboardProps) {
 				<div className='flex items-center'>
 					<Avatar className='h-12 w-12 border-2 border-purple-100'>
 						<AvatarImage
-							src={
-								warpcastUser?.pfp || user?.pfpUrl || userData?.profileImage
-							}
+							src={warpcastUser?.pfp || user?.pfpUrl || userData?.profileImage}
 							alt={
 								warpcastUser?.displayName ||
 								user?.displayName ||

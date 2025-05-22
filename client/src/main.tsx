@@ -1,10 +1,10 @@
-import { sdk } from '@farcaster/frame-sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import { clientLog } from './lib/clientLogger'
+import { sdk } from './lib/sdk'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -26,13 +26,10 @@ const root = createRoot(document.getElementById('root')!)
 // Initialize Farcaster SDK and render App with user context
 const initApp = async () => {
 	try {
-		// Check if we're in a Mini App environment
-		const isInMiniApp = await sdk.isInMiniApp()
-		clientLog('info', `Environment check: ${isInMiniApp ? 'Mini App' : 'Web'}`)
+		// Wait for SDK initialization
+		await new Promise(resolve => setTimeout(resolve, 1000)) // Give SDK time to initialize
 
-		if (isInMiniApp) {
-			// Initialize SDK
-			await sdk.actions.ready()
+		if (sdk.isInitialized()) {
 			clientLog('info', 'SDK initialized with user:', sdk.context.user)
 		} else {
 			clientLog('info', 'Running in web environment, SDK not initialized')

@@ -388,7 +388,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 				displayName: warpcastUser.displayName,
 				profileImage: warpcastUser.pfp,
 				bio: warpcastUser.bio,
-				active_on_farcaster: true,
 				registrationDate: new Date(),
 			})
 

@@ -79,6 +79,7 @@ export type FrameNotificationDetails = {
 
 // SDK initialization
 class SDK {
+	private initialized = false
 	context: FrameContext = {
 		user: {
 			fid: 0,
@@ -90,20 +91,49 @@ class SDK {
 	}
 
 	constructor() {
-		// Initialize SDK context from Farcaster SDK
-		this.context = farcasterSdk.context
-		clientLog('SDK initialized with context:', this.context)
+		this.initialize()
+	}
+
+	private async initialize() {
+		try {
+			// Check if we're in a Mini App environment
+			const isInMiniApp = await farcasterSdk.isInMiniApp()
+			clientLog(
+				'info',
+				`Environment check: ${isInMiniApp ? 'Mini App' : 'Web'}`
+			)
+
+			if (isInMiniApp) {
+				// Initialize SDK
+				await farcasterSdk.actions.ready()
+				this.context = farcasterSdk.context
+				this.initialized = true
+				clientLog('info', 'SDK initialized with context:', this.context)
+			} else {
+				clientLog('info', 'Running in web environment, SDK not initialized')
+			}
+		} catch (error) {
+			clientLog('error', 'SDK initialization failed:', error)
+		}
 	}
 
 	async requestAuth() {
+		if (!this.initialized) {
+			throw new Error('SDK not initialized')
+		}
+
 		try {
 			const result = await farcasterSdk.actions.requestAuth()
-			clientLog('Auth request result:', result)
+			clientLog('info', 'Auth request result:', result)
 			return result
 		} catch (error) {
-			clientLog('Error requesting auth:', error)
+			clientLog('error', 'Error requesting auth:', error)
 			throw error
 		}
+	}
+
+	isInitialized() {
+		return this.initialized
 	}
 }
 

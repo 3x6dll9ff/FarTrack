@@ -1,9 +1,11 @@
 import { ThemeProvider } from '@/components/ui/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { type FrameContext } from '@farcaster/frame-sdk'
-import { lazy, Suspense } from 'react'
+import { sdk, type FrameContext } from '@farcaster/frame-sdk'
+import { farcasterFrame as frameConnector } from '@farcaster/frame-wagmi-connector'
+import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
+import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { AppLayout } from './components/layout/app-layout'
 import { Skeleton } from './components/ui/skeleton'
 
@@ -27,6 +29,10 @@ interface AppProps {
 }
 
 function App({ user }: AppProps) {
+	useEffect(() => {
+		sdk.actions.ready()
+	}, [])
+
 	return (
 		<ThemeProvider defaultTheme='dark'>
 			<TooltipProvider>
@@ -43,6 +49,57 @@ function App({ user }: AppProps) {
 				</AppLayout>
 			</TooltipProvider>
 		</ThemeProvider>
+	)
+}
+
+function ConnectMenu() {
+	const { isConnected, address } = useAccount()
+	const { connect } = useConnect()
+
+	if (isConnected) {
+		return (
+			<div>
+				<div>Connected account: {address}</div>
+				<SignButton />
+			</div>
+		)
+	}
+
+	return (
+		<button
+			type='button'
+			onClick={() => connect({ connector: frameConnector() })}
+		>
+			Connect
+		</button>
+	)
+}
+
+function SignButton() {
+	const { signMessage, isPending, data, error } = useSignMessage()
+
+	return (
+		<div>
+			<button
+				type='button'
+				onClick={() => signMessage({ message: 'hello world' })}
+				disabled={isPending}
+			>
+				{isPending ? 'Signing...' : 'Sign message'}
+			</button>
+			{data && (
+				<div>
+					<div>Signature</div>
+					<div>{data}</div>
+				</div>
+			)}
+			{error && (
+				<div>
+					<div>Error</div>
+					<div>{error.message}</div>
+				</div>
+			)}
+		</div>
 	)
 }
 

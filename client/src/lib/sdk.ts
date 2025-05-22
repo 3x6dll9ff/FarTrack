@@ -80,6 +80,7 @@ export type FrameNotificationDetails = {
 // SDK initialization
 class SDK {
 	private initialized = false
+	private authenticated = false
 	context: FrameContext = {
 		user: {
 			fid: 0,
@@ -106,6 +107,17 @@ class SDK {
 			if (isInMiniApp) {
 				// Initialize SDK
 				await farcasterSdk.actions.ready()
+
+				// Try to sign in silently first
+				try {
+					const signInResult = await farcasterSdk.actions.signIn()
+					if (signInResult) {
+						this.authenticated = true
+						clientLog('info', 'User silently signed in')
+					}
+				} catch (error) {
+					clientLog('info', 'Silent sign in failed, will try explicit sign in')
+				}
 
 				// Get user context
 				const userContext = await farcasterSdk.getUserContext()
@@ -153,9 +165,31 @@ class SDK {
 		}
 
 		try {
-			const result = await farcasterSdk.actions.requestAuth()
-			clientLog('info', 'Auth request result:', result)
-			return result
+			// Try to sign in if not already authenticated
+			if (!this.authenticated) {
+				const signInResult = await farcasterSdk.actions.signIn()
+				if (signInResult) {
+					this.authenticated = true
+					clientLog('info', 'User signed in successfully')
+				}
+			}
+
+			// Get updated user context after authentication
+			const userContext = await farcasterSdk.getUserContext()
+			if (userContext) {
+				this.context = {
+					...this.context,
+					user: {
+						fid: userContext.fid,
+						username: userContext.username,
+						displayName: userContext.displayName,
+						pfpUrl: userContext.pfpUrl,
+						bio: userContext.bio,
+					},
+				}
+			}
+
+			return this.context
 		} catch (error) {
 			clientLog('error', 'Error requesting auth:', error)
 			throw error
@@ -164,6 +198,10 @@ class SDK {
 
 	isInitialized() {
 		return this.initialized
+	}
+
+	isAuthenticated() {
+		return this.authenticated
 	}
 }
 

@@ -30,7 +30,24 @@ const initApp = async () => {
 		await new Promise(resolve => setTimeout(resolve, 2000)) // Give SDK more time to initialize
 
 		if (sdk.isInitialized()) {
-			clientLog('info', 'SDK initialized with user:', sdk.context.user)
+			clientLog('info', 'SDK initialized')
+
+			// Check authentication state
+			if (sdk.isAuthenticated()) {
+				clientLog('info', 'User is authenticated:', sdk.context.user)
+			} else {
+				clientLog('info', 'User is not authenticated, requesting auth...')
+				try {
+					await sdk.requestAuth()
+					clientLog(
+						'info',
+						'User authenticated successfully:',
+						sdk.context.user
+					)
+				} catch (error) {
+					clientLog('error', 'Failed to authenticate user:', error)
+				}
+			}
 
 			// Render the app with providers and user context
 			root.render(

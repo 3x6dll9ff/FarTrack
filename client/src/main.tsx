@@ -27,22 +27,31 @@ const root = createRoot(document.getElementById('root')!)
 const initApp = async () => {
 	try {
 		// Wait for SDK initialization
-		await new Promise(resolve => setTimeout(resolve, 1000)) // Give SDK time to initialize
+		await new Promise(resolve => setTimeout(resolve, 2000)) // Give SDK more time to initialize
 
 		if (sdk.isInitialized()) {
 			clientLog('info', 'SDK initialized with user:', sdk.context.user)
+
+			// Render the app with providers and user context
+			root.render(
+				<QueryClientProvider client={queryClient}>
+					<BrowserRouter>
+						<App user={sdk.context.user} />
+					</BrowserRouter>
+				</QueryClientProvider>
+			)
 		} else {
 			clientLog('info', 'Running in web environment, SDK not initialized')
-		}
 
-		// Render the app with providers
-		root.render(
-			<QueryClientProvider client={queryClient}>
-				<BrowserRouter>
-					<App user={sdk.context.user} />
-				</BrowserRouter>
-			</QueryClientProvider>
-		)
+			// Render the app without user context
+			root.render(
+				<QueryClientProvider client={queryClient}>
+					<BrowserRouter>
+						<App />
+					</BrowserRouter>
+				</QueryClientProvider>
+			)
+		}
 	} catch (error) {
 		clientLog('error', 'App initialization failed:', error)
 		// Render the app anyway, but without user context

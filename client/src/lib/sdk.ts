@@ -106,7 +106,36 @@ class SDK {
 			if (isInMiniApp) {
 				// Initialize SDK
 				await farcasterSdk.actions.ready()
-				this.context = farcasterSdk.context
+
+				// Get user context
+				const userContext = await farcasterSdk.getUserContext()
+				if (userContext) {
+					this.context = {
+						...this.context,
+						user: {
+							fid: userContext.fid,
+							username: userContext.username,
+							displayName: userContext.displayName,
+							pfpUrl: userContext.pfpUrl,
+							bio: userContext.bio,
+						},
+					}
+				}
+
+				// Get client context
+				const clientContext = await farcasterSdk.getClientContext()
+				if (clientContext) {
+					this.context = {
+						...this.context,
+						client: {
+							clientFid: clientContext.fid,
+							added: clientContext.added,
+							safeAreaInsets: clientContext.safeAreaInsets,
+							notificationDetails: clientContext.notificationDetails,
+						},
+					}
+				}
+
 				this.initialized = true
 				clientLog('info', 'SDK initialized with context:', this.context)
 			} else {
@@ -114,6 +143,7 @@ class SDK {
 			}
 		} catch (error) {
 			clientLog('error', 'SDK initialization failed:', error)
+			throw error
 		}
 	}
 

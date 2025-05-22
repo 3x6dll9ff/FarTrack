@@ -1,3 +1,9 @@
+import { sdk as farcasterSdk, type FrameContext } from '@farcaster/frame-sdk'
+import { clientLog } from './clientLogger'
+
+// Re-export types
+export type { FrameContext }
+
 // SDK Types
 export type FrameContext = {
 	user: {
@@ -84,9 +90,19 @@ class SDK {
 	}
 
 	constructor() {
-		// Initialize SDK context from window object
-		if (typeof window !== 'undefined' && (window as any).sdk?.context) {
-			this.context = (window as any).sdk.context
+		// Initialize SDK context from Farcaster SDK
+		this.context = farcasterSdk.context
+		clientLog('SDK initialized with context:', this.context)
+	}
+
+	async requestAuth() {
+		try {
+			const result = await farcasterSdk.actions.requestAuth()
+			clientLog('Auth request result:', result)
+			return result
+		} catch (error) {
+			clientLog('Error requesting auth:', error)
+			throw error
 		}
 	}
 }

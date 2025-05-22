@@ -1,4 +1,4 @@
-import { sdk, type FrameContext } from '@farcaster/frame-sdk'
+import { sdk } from '@farcaster/frame-sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -25,31 +25,38 @@ const root = createRoot(document.getElementById('root')!)
 
 // Initialize Farcaster SDK and render App with user context
 const initApp = async () => {
-	let userContext: FrameContext['user'] | undefined
-
 	try {
 		// Check if we're in a Mini App environment
 		const isInMiniApp = await sdk.isInMiniApp()
 		clientLog('info', `Environment check: ${isInMiniApp ? 'Mini App' : 'Web'}`)
 
 		if (isInMiniApp) {
-			// Initialize SDK and get user context
+			// Initialize SDK
 			await sdk.actions.ready()
-			userContext = sdk.context.user
-			clientLog('info', 'SDK initialized with user:', userContext)
+			clientLog('info', 'SDK initialized with user:', sdk.context.user)
+		} else {
+			clientLog('info', 'Running in web environment, SDK not initialized')
 		}
-	} catch (error) {
-		clientLog('error', 'SDK initialization failed:', error)
-	}
 
-	// Render the app with providers
-	root.render(
-		<QueryClientProvider client={queryClient}>
-			<BrowserRouter>
-				<App user={userContext} />
-			</BrowserRouter>
-		</QueryClientProvider>
-	)
+		// Render the app with providers
+		root.render(
+			<QueryClientProvider client={queryClient}>
+				<BrowserRouter>
+					<App user={sdk.context.user} />
+				</BrowserRouter>
+			</QueryClientProvider>
+		)
+	} catch (error) {
+		clientLog('error', 'App initialization failed:', error)
+		// Render the app anyway, but without user context
+		root.render(
+			<QueryClientProvider client={queryClient}>
+				<BrowserRouter>
+					<App />
+				</BrowserRouter>
+			</QueryClientProvider>
+		)
+	}
 }
 
 // Start the app
